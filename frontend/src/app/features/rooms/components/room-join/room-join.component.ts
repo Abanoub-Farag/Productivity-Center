@@ -1,10 +1,24 @@
-import { Component, Input, inject, signal } from '@angular/core';
+import { Component, Input, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, of } from 'rxjs';
+import { exhaustMap, catchError, tap, filter, map } from 'rxjs/operators';
 import { RoomService, ApiResponse } from '../../services/room.service';
 
 export type RequestState = 'idle' | 'loading' | 'success' | 'error';
+
+const STATUS_MESSAGES: Record<number, string> = {
+  400: 'Bad Request: The provided room ID or data is invalid.',
+  401: 'Unauthorized: Please log in to join this room.',
+  403: 'Forbidden: You do not have permission to join this room.',
+  404: 'Room Not Found: The requested room does not exist.',
+  409: 'Conflict: You are already a member of this room.',
+  500: 'Server Error: An internal server error occurred while joining.',
+  503: 'Service Unavailable: Room server is currently unavailable.',
+  504: 'Gateway Timeout: The server timed out processing your request.',
+};
 
 @Component({
   selector: 'app-room-join',
@@ -97,6 +111,7 @@ export type RequestState = 'idle' | 'loading' | 'success' | 'error';
 })
 export class RoomJoinComponent {
   private readonly roomService = inject(RoomService);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input() roomId?: number | string | null;
 
@@ -105,37 +120,48 @@ export class RoomJoinComponent {
   successMessage = signal<string | null>(null);
   manualRoomId = signal<string>('');
 
+  private readonly joinRequest$ = new Subject<number | string | null | undefined>();
+
+  constructor() {
+    this.joinRequest$.pipe(
+      map(explicitId => explicitId ?? this.roomId ?? this.manualRoomId()),
+      map(targetId => this.validateRoomId(targetId)),
+      tap(validation => {
+        if (!validation.valid) {
+          this.joinState.set('error');
+          this.errorMessage.set(validation.error ?? 'Invalid Room ID.');
+          this.successMessage.set(null);
+        } else {
+          this.joinState.set('loading');
+          this.errorMessage.set(null);
+          this.successMessage.set(null);
+        }
+      }),
+      filter(validation => validation.valid && validation.parsedId !== undefined),
+      exhaustMap(validation => 
+        this.roomService.joinRoom(validation.parsedId!).pipe(
+          tap((response: ApiResponse<any>) => {
+            this.joinState.set('success');
+            this.successMessage.set(response.message || `Successfully joined room #${validation.parsedId}.`);
+          }),
+          catchError((err: HttpErrorResponse | Error) => {
+            this.joinState.set('error');
+            this.errorMessage.set(this.extractErrorMessage(err));
+            return of(null);
+          })
+        )
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
+  }
+
   joinRoom(explicitId?: number | string | null): void {
     if (this.joinState() === 'loading') return;
-
-    const targetId = explicitId ?? this.roomId ?? this.manualRoomId();
-    const validation = this.validateRoomId(targetId);
-
-    if (!validation.valid || validation.parsedId === undefined) {
-      this.joinState.set('error');
-      this.errorMessage.set(validation.error ?? 'Invalid Room ID.');
-      this.successMessage.set(null);
-      return;
-    }
-
-    this.joinState.set('loading');
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    this.roomService.joinRoom(validation.parsedId).subscribe({
-      next: (response: ApiResponse<any>) => {
-        this.joinState.set('success');
-        this.successMessage.set(response.message || `Successfully joined room #${validation.parsedId}.`);
-      },
-      error: (err: HttpErrorResponse | Error) => {
-        this.joinState.set('error');
-        this.errorMessage.set(this.extractErrorMessage(err));
-      }
-    });
+    this.joinRequest$.next(explicitId);
   }
 
   private validateRoomId(id: number | string | null | undefined): { valid: boolean; parsedId?: number; error?: string } {
-    if (id === null || id === undefined || String(id).trim() === '') {
+    if (id == null || String(id).trim() === '') {
       return { valid: false, error: 'Room ID is required.' };
     }
 
@@ -174,18 +200,7 @@ export class RoomJoinComponent {
     if (parsedErrors) return parsedErrors;
 
     const apiMessage = payload?.message;
-    const statusMessages: Record<number, string> = {
-      400: apiMessage ?? 'Bad Request: The provided room ID or data is invalid.',
-      401: apiMessage ?? 'Unauthorized: Please log in to join this room.',
-      403: apiMessage ?? 'Forbidden: You do not have permission to join this room.',
-      404: apiMessage ?? 'Room Not Found: The requested room does not exist.',
-      409: apiMessage ?? 'Conflict: You are already a member of this room.',
-      500: apiMessage ?? 'Server Error: An internal server error occurred while joining.',
-      503: apiMessage ?? 'Service Unavailable: Room server is currently unavailable.',
-      504: apiMessage ?? 'Gateway Timeout: The server timed out processing your request.',
-    };
-
-    return statusMessages[err.status] ?? apiMessage ?? `Error (${err.status}): Failed to join room.`;
+    return apiMessage ?? STATUS_MESSAGES[err.status] ?? `Error (${err.status}): Failed to join room.`;
   }
 
   private formatApiErrors(apiErrors: any): string | null {
@@ -193,7 +208,9 @@ export class RoomJoinComponent {
     if (typeof apiErrors === 'string') return apiErrors;
     if (Array.isArray(apiErrors) && apiErrors.length > 0) return apiErrors.join(', ');
 
-    if (typeof apiErrors === 'object' && Object.keys(apiErrors).length > 0) {
+    if (typeof apiErrors === 'object') {
+      const keys = Object.keys(apiErrors);
+      if (keys.length === 0) return null;
       return Object.entries(apiErrors)
         .map(([field, msg]) => Array.isArray(msg) ? `${field}: ${msg.join(', ')}` : `${field}: ${msg}`)
         .join('; ');
