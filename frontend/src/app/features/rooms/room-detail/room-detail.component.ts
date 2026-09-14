@@ -32,6 +32,8 @@ import {
   Pencil,
   Check,
   X,
+  Shield,
+  Lock,
 } from 'lucide-angular';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { RoomTimerComponent } from '../components/room-timer/room-timer.component';
@@ -82,6 +84,8 @@ export class RoomDetailComponent implements OnInit {
   readonly PencilIcon = Pencil;
   readonly CheckIcon = Check;
   readonly XIcon = X;
+  readonly ShieldIcon = Shield;
+  readonly LockIcon = Lock;
 
   // ── Room data ─────────────────────────────────────────────────────────────
   roomId = signal<number | null>(null);
@@ -102,6 +106,7 @@ export class RoomDetailComponent implements OnInit {
   isEditRoomModalOpen = signal<boolean>(false);
   editRoomTitle = signal<string>('');
   editRoomDescription = signal<string>('');
+  editRoomVisibility = signal<'PUBLIC' | 'PRIVATE'>('PUBLIC');
   isUpdatingRoom = signal<boolean>(false);
   roomUpdateError = signal<string | null>(null);
 
@@ -299,6 +304,7 @@ export class RoomDetailComponent implements OnInit {
     if (!currentRoom) return;
     this.editRoomTitle.set(currentRoom.title || '');
     this.editRoomDescription.set(currentRoom.description || '');
+    this.editRoomVisibility.set(currentRoom.visibility || 'PUBLIC');
     this.roomUpdateError.set(null);
     this.isEditRoomModalOpen.set(true);
   }
@@ -321,6 +327,7 @@ export class RoomDetailComponent implements OnInit {
     if (!currentRoom) return;
     const title = this.editRoomTitle().trim();
     const description = this.editRoomDescription().trim();
+    const visibility = this.editRoomVisibility();
 
     if (!title) {
       this.roomUpdateError.set('Room title is required.');
@@ -330,7 +337,7 @@ export class RoomDetailComponent implements OnInit {
     this.isUpdatingRoom.set(true);
     this.roomUpdateError.set(null);
 
-    const dto: UpdateRoomDto = { title, description };
+    const dto: UpdateRoomDto = { title, description, visibility };
 
     this.roomService.updateRoom(currentRoom.id, dto)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -338,7 +345,7 @@ export class RoomDetailComponent implements OnInit {
         next: (res) => {
           this.isUpdatingRoom.set(false);
           this.isEditRoomModalOpen.set(false);
-          const updatedData = res.data || { ...currentRoom, title, description };
+          const updatedData = res.data || { ...currentRoom, title, description, visibility };
           this.room.update(r => r ? { ...r, ...updatedData } : null);
         },
         error: (err: HttpErrorResponse) => {

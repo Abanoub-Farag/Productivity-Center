@@ -17,11 +17,14 @@ export interface ApiResponse<T = any> {
   errors: ApiErrorDetail | string[] | string | null;
 }
 
+export type RoomVisibility = 'PUBLIC' | 'PRIVATE';
+
 export interface RoomData {
   id: number;
   title: string;
   description: string;
   ownerId?: number;
+  visibility?: RoomVisibility;
   // To satisfy our components which might look for these:
   tags?: string[];
   status?: string;
@@ -60,11 +63,13 @@ export interface FavoritePageResponse {
 export interface CreateRoomDto {
   title: string;
   description: string;
+  visibility: RoomVisibility;
 }
 
 export interface UpdateRoomDto {
   title: string;
   description: string;
+  visibility: RoomVisibility;
 }
 
 @Injectable({

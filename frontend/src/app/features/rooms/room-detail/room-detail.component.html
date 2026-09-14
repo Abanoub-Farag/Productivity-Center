@@ -13,6 +13,7 @@
         </a>
         <div class="header-room-info">
           <h1 class="header-room-title">
+            <lucide-icon *ngIf="room()?.visibility === 'PRIVATE'" [img]="LockIcon" class="title-lock-icon" title="Private Room"></lucide-icon>
             {{ room()?.title || 'Design Critiques Session' }}
           </h1>
           <span class="live-badge" [class.retrying]="heartbeatStatus() === 'retrying'" [class.failed]="heartbeatStatus() === 'failed'">
@@ -226,6 +227,19 @@
             placeholder="Enter room description"
             rows="3"
           ></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit-room-visibility">Visibility</label>
+          <select 
+            id="edit-room-visibility"
+            class="form-control"
+            [ngModel]="editRoomVisibility()"
+            (ngModelChange)="editRoomVisibility.set($event)"
+            name="visibility"
+          >
+            <option value="PUBLIC">Public</option>
+            <option value="PRIVATE">Private</option>
+          </select>
         </div>
         <div class="modal-error" *ngIf="roomUpdateError()">
           <p>{{ roomUpdateError() }}</p>

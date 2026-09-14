@@ -6,7 +6,7 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { TopNavComponent } from '../components/top-nav/top-nav.component';
 import { RoomService } from '../services/room.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { LucideAngularModule, Plus } from 'lucide-angular';
+import { LucideAngularModule, Plus, Globe, Shield } from 'lucide-angular';
 
 @Component({
   selector: 'app-create-room',
@@ -22,10 +22,13 @@ export class CreateRoomComponent {
   private readonly authService = inject(AuthService);
 
   readonly PlusIcon = Plus;
+  readonly GlobeIcon = Globe;
+  readonly ShieldIcon = Shield;
   
   createRoomForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
-    description: ['']
+    description: [''],
+    visibility: ['PUBLIC', [Validators.required]]
   });
 
   isSubmitting = signal<boolean>(false);

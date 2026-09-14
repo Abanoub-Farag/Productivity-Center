@@ -31,13 +31,19 @@ $status-idle: #6b7280;
     align-items: flex-start;
   }
 
+  &__title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    padding-right: 12px;
+  }
+
   &__title {
     color: $text-primary;
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
-    flex: 1;
-    padding-right: 12px;
   }
 
   &__body {
@@ -105,6 +111,22 @@ $status-idle: #6b7280;
     background-color: rgba($status-idle, 0.15);
     color: $status-idle;
     border: 1px solid rgba($status-idle, 0.3);
+  }
+
+  &--private {
+    background-color: rgba(#f59e0b, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(#f59e0b, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: capitalize;
+    font-size: 0.7rem;
+
+    .badge-icon {
+      width: 12px;
+      height: 12px;
+    }
   }
 }
 

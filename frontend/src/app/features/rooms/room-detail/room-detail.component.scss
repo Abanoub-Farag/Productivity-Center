@@ -116,6 +116,16 @@ $circumference:   565.49; // 2π × 90
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 380px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .title-lock-icon {
+    width: 18px;
+    height: 18px;
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
 }
 
 .live-badge {

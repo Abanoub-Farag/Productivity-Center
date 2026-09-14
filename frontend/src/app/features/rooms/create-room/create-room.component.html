@@ -41,6 +41,33 @@
                 placeholder="What is the main purpose of this room?">
               </textarea>
             </div>
+
+            <div class="form-group">
+              <label>Room Visibility</label>
+              <div class="visibility-options">
+                <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PUBLIC'">
+                  <input type="radio" formControlName="visibility" value="PUBLIC" />
+                  <div class="radio-content">
+                    <lucide-icon [img]="GlobeIcon" class="radio-icon"></lucide-icon>
+                    <div class="radio-text">
+                      <span class="radio-title">Public</span>
+                      <span class="radio-desc">Visible in global room discovery and search.</span>
+                    </div>
+                  </div>
+                </label>
+                <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PRIVATE'">
+                  <input type="radio" formControlName="visibility" value="PRIVATE" />
+                  <div class="radio-content">
+                    <lucide-icon [img]="ShieldIcon" class="radio-icon"></lucide-icon>
+                    <div class="radio-text">
+                      <span class="radio-title">Private</span>
+                      <span class="radio-desc">Hidden from room lists and search results; direct access only.</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
             
             <div class="form-group" *ngIf="error()">
               <div class="server-error">{{ error() }}</div>

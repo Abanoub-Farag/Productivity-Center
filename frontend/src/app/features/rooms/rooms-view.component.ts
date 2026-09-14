@@ -75,6 +75,7 @@ export class RoomsViewComponent implements OnInit {
             description: r.description ?? 'No description provided.',
             tags: r.tags ?? [],
             actionType: r.actionType ?? 'view',
+            visibility: r.visibility ?? 'PUBLIC',
             isFavorite: favSet.has(r.id.toString())
           }));
         this.rooms.set(mappedRooms);
@@ -107,6 +108,7 @@ export class RoomsViewComponent implements OnInit {
           description: f.description ?? 'No description provided.',
           tags: ['favorite'],
           actionType: 'join',
+          visibility: f['visibility'] ?? 'PUBLIC',
           isFavorite: true,
           addedAt: f.addedAt
         }));

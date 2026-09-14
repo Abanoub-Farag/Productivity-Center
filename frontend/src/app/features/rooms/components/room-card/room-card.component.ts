@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ArrowRight, Eye, Heart } from 'lucide-angular';
+import { LucideAngularModule, ArrowRight, Eye, Heart, Shield } from 'lucide-angular';
 
 export interface Room {
   id: string;
@@ -8,6 +8,7 @@ export interface Room {
   description: string;
   tags: string[];
   actionType: 'join' | 'view';
+  visibility?: 'PUBLIC' | 'PRIVATE';
   isFavorite?: boolean;
   addedAt?: string;
   isPendingFavorite?: boolean;
@@ -29,6 +30,7 @@ export class RoomCardComponent {
   readonly ArrowRightIcon = ArrowRight;
   readonly EyeIcon = Eye;
   readonly HeartIcon = Heart;
+  readonly ShieldIcon = Shield;
 
   handleAction() {
     this.onAction.emit(this.room.id);

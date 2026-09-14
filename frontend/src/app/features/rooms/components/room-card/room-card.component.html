@@ -1,6 +1,12 @@
 <div class="room-card" [class.hover-effect]="true">
   <div class="room-card__header">
-    <h3 class="room-card__title">{{ room.title }}</h3>
+    <div class="room-card__title-wrapper">
+      <h3 class="room-card__title">{{ room.title }}</h3>
+      <span class="badge badge--private" *ngIf="room.visibility === 'PRIVATE'" title="Private Room">
+        <lucide-icon [img]="ShieldIcon" class="badge-icon"></lucide-icon>
+        Private
+      </span>
+    </div>
     <button 
       type="button"
       class="favorite-btn" 
