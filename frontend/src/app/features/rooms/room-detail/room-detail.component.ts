@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   LucideAngularModule,
@@ -46,7 +46,6 @@ import { TaskService, TaskData, UpdateTaskRequest } from '../services/task.servi
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     FormsModule,
     LucideAngularModule,
     SidebarComponent,

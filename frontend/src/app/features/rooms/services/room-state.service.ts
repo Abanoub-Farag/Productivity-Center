@@ -223,6 +223,10 @@ export class RoomStateService {
     this.editRoomDescription.set(description);
   }
 
+  setEditRoomVisibility(visibility: 'PUBLIC' | 'PRIVATE') {
+    this.editRoomVisibility.set(visibility);
+  }
+
   submitUpdateRoom() {
     const currentRoom = this.room();
     if (!currentRoom) return;
