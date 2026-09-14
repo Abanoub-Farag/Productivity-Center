@@ -1,32 +1,12 @@
-// ── Design Tokens ────────────────────────────────────────────────────────────
-@use "sass:color";
+$bg-root: var(--room-bg-root);
+$bg-card: var(--room-bg-card);
+$bg-elevated: var(--room-bg-elevated);
+$border: var(--room-border);
+$border-muted: var(--room-border-muted);
+$accent: var(--room-accent);
+$text-primary: var(--room-text-primary);
+$text-dim: var(--room-text-dim);
 
-$bg-root:         #0B0B14;
-$bg-card:         #131226;
-$bg-card-alt:     #16152B;
-$bg-elevated:     #1A1933;
-$border:          #232145;
-$border-muted:    rgba(#232145, 0.6);
-$accent:          #7C3AED;
-$accent-light:    #8B5CF6;
-$accent-glow:     rgba(#7C3AED, 0.35);
-$accent-subtle:   rgba(#7C3AED, 0.12);
-$text-primary:    #FFFFFF;
-$text-muted:      #94A3B8;
-$text-dim:        #6D6B8D;
-$green-live:      #10B981;
-$green-live-bg:   rgba(#10B981, 0.12);
-$ring-track:      rgba(#8B5CF6, 0.15);
-$circumference:   565.49; // 2π × 90
-
-// ── Reset helpers ─────────────────────────────────────────────────────────────
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-// ── Root layout ───────────────────────────────────────────────────────────────
 .session-layout {
   display: flex;
   min-height: 100vh;
@@ -47,165 +27,6 @@ $circumference:   565.49; // 2π × 90
   overflow: hidden;
 }
 
-// ── Top Header ────────────────────────────────────────────────────────────────
-.session-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 36px;
-  background-color: $bg-card;
-  border-bottom: 1px solid $border;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  backdrop-filter: blur(12px);
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  background-color: $bg-elevated;
-  border: 1px solid $border;
-  border-radius: 10px;
-  color: $text-muted;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-
-  .back-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover {
-    background-color: $accent-subtle;
-    border-color: $accent;
-    color: $accent-light;
-    transform: translateX(-2px);
-  }
-}
-
-.header-room-info {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.header-room-title {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: $text-primary;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 380px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  .title-lock-icon {
-    width: 18px;
-    height: 18px;
-    color: #f59e0b;
-    flex-shrink: 0;
-  }
-}
-
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background-color: $green-live-bg;
-  border: 1px solid rgba($green-live, 0.3);
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: $green-live;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-
-  .live-dot {
-    width: 7px;
-    height: 7px;
-    background-color: $green-live;
-    border-radius: 50%;
-    animation: pulse-dot 1.8s ease-in-out infinite;
-  }
-}
-
-.icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid $border;
-  border-radius: 10px;
-  color: $text-muted;
-  cursor: pointer;
-  padding: 8px;
-  transition: all 0.2s ease;
-
-  .btn-icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  &:hover {
-    background-color: $accent-subtle;
-    border-color: $accent;
-    color: $text-primary;
-  }
-}
-
-.favorite-btn {
-  &.active {
-    color: #EF4444;
-    border-color: rgba(239, 68, 68, 0.4);
-    background-color: rgba(239, 68, 68, 0.1);
-
-    .btn-icon {
-      fill: #EF4444;
-    }
-  }
-}
-
-.notification-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .notification-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 8px;
-    height: 8px;
-    background-color: #EF4444;
-    border: 2px solid $bg-card;
-    border-radius: 50%;
-  }
-}
-
-// ── Session Body ───────────────────────────────────────────────────────────
 .session-body {
   flex: 1;
   display: grid;
@@ -214,183 +35,14 @@ $circumference:   565.49; // 2π × 90
   padding: 32px 36px;
   align-items: start;
   overflow-y: auto;
+}
 
-  @media (max-width: 1024px) {
+@media (max-width: 1024px) {
+  .session-body {
     grid-template-columns: 1fr;
     grid-auto-rows: auto;
   }
 }
-
-// ── Pomodoro Timer Panel ──────────────────────────────────────────────────────
-.timer-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: 36px 24px;
-  background-color: $bg-card;
-  border: 1px solid $border;
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-
-  // Ambient glow from bottom-center
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 260px;
-    height: 140px;
-    background: radial-gradient(ellipse, rgba($accent, 0.18) 0%, transparent 70%);
-    pointer-events: none;
-  }
-}
-
-.timer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background-color: $accent-subtle;
-  border: 1px solid rgba($accent-light, 0.3);
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: $accent-light;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-
-  .timer-badge-icon {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-// ── SVG Ring ──────────────────────────────────────────────────────────────────
-.ring-wrapper {
-  position: relative;
-  width: 224px;
-  height: 224px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.progress-ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-
-  .ring-track {
-    stroke: $ring-track;
-  }
-
-  .ring-progress {
-    transition: stroke-dashoffset 1s linear;
-  }
-}
-
-.ring-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.timer-display {
-  font-size: 3.2rem;
-  font-weight: 800;
-  color: $text-primary;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  text-shadow: 0 0 30px rgba($accent-light, 0.4);
-}
-
-.timer-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: $text-dim;
-  text-transform: uppercase;
-}
-
-// ── Timer Controls ────────────────────────────────────────────────────────────
-.timer-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.ctrl-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  outline: none;
-
-  .ctrl-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .ctrl-icon--lg {
-    width: 22px;
-    height: 22px;
-  }
-
-  &--secondary {
-    width: 48px;
-    height: 48px;
-    background-color: $bg-elevated;
-    border: 1px solid $border;
-    color: $text-muted;
-
-    &:hover {
-      background-color: $accent-subtle;
-      border-color: $accent;
-      color: $accent-light;
-      transform: scale(1.06);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-
-  &--primary {
-    width: 68px;
-    height: 68px;
-    background: linear-gradient(135deg, $accent, $accent-light);
-    color: #fff;
-    box-shadow:
-      0 0 0 0 $accent-glow,
-      0 8px 32px $accent-glow;
-    animation: glow-pulse 2.4s ease-in-out infinite;
-
-    &:hover {
-      transform: scale(1.07);
-      box-shadow:
-        0 0 0 8px rgba($accent, 0.2),
-        0 8px 40px rgba($accent, 0.55);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-}
-
-// ── Shared Split Panel ─────────────────────────────
 
 .split-panel {
   background-color: $bg-card;
@@ -399,412 +51,7 @@ $circumference:   565.49; // 2π × 90
   overflow: hidden;
 }
 
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid $border-muted;
-
-  .panel-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .panel-icon {
-    width: 15px;
-    height: 15px;
-    color: $accent-light;
-  }
-}
-
-.panel-title {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: $text-dim;
-}
-
-// ── Participants ──────────────────────────────────────────────────────────────
-.participant-list {
-  list-style: none;
-  margin: 0;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.participant-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background-color: transparent;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  cursor: default;
-
-  &:hover {
-    background-color: $bg-elevated;
-    border-color: $border-muted;
-  }
-}
-
-.participant-avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-
-  .participant-avatar {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid $border;
-  }
-
-  .online-dot {
-    position: absolute;
-    bottom: 1px;
-    right: 1px;
-    width: 10px;
-    height: 10px;
-    background-color: $green-live;
-    border: 2px solid $bg-card;
-    border-radius: 50%;
-  }
-}
-
-.participant-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.participant-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: $text-primary;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.participant-role {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 100px;
-  width: fit-content;
-
-  &.role--host {
-    background-color: $accent-subtle;
-    color: $accent-light;
-    border: 1px solid rgba($accent-light, 0.25);
-  }
-
-  &.role--member {
-    background-color: rgba($text-dim, 0.12);
-    color: $text-dim;
-    border: 1px solid rgba($text-dim, 0.2);
-  }
-}
-
-// ── Tasks ─────────────────────────────────────────────────────────────────────
-.task-input-wrap {
-  padding: 14px 16px;
-  border-bottom: 1px solid $border-muted;
-
-  .task-input {
-    width: 100%;
-    background-color: $bg-elevated;
-    border: 1px solid $border;
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: $text-primary;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    outline: none;
-    font-family: inherit;
-
-    &::placeholder {
-      color: $text-dim;
-    }
-
-    &:focus {
-      border-color: $accent;
-      box-shadow: 0 0 0 3px rgba($accent, 0.18);
-    }
-  }
-}
-
-.add-task-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  padding: 0;
-  margin: 0;
-  background-color: $accent-subtle;
-  border: 1px solid rgba($accent-light, 0.3);
-  border-radius: 8px;
-  color: $accent-light;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  .add-icon {
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &:hover {
-    background-color: $accent;
-    border-color: $accent;
-    color: #fff;
-    transform: scale(1.06);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.task-list {
-  list-style: none;
-  margin: 0;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.task-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  background-color: $bg-elevated;
-  border: 1px solid $border-muted;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: $border;
-    background-color: color.adjust($bg-elevated, $lightness: -2%);
-  }
-
-  &--done {
-    opacity: 0.55;
-
-    &:hover {
-      opacity: 0.7;
-    }
-  }
-
-  &--updating {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-}
-
-.task-update-error {
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background-color: rgba(#EF4444, 0.1);
-  border: 1px solid rgba(#EF4444, 0.3);
-  border-radius: 8px;
-  color: #EF4444;
-  font-size: 0.8125rem;
-}
-
-.task-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.task-card:hover .task-actions {
-  opacity: 1;
-}
-
-.task-action-btn {
-  background: transparent;
-  border: none;
-  padding: 4px;
-  border-radius: 6px;
-  color: $text-dim;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-
-  .task-action-icon {
-    width: 14px;
-    height: 14px;
-  }
-
-  &:hover {
-    color: $accent-light;
-    background-color: rgba($accent-light, 0.1);
-  }
-
-  &--save:hover {
-    color: $green-live;
-    background-color: rgba($green-live, 0.1);
-  }
-
-  &--cancel:hover {
-    color: #EF4444;
-    background-color: rgba(#EF4444, 0.1);
-  }
-}
-
-.task-edit-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.task-edit-input {
-  flex: 1;
-  background-color: $bg-elevated;
-  border: 1px solid $accent;
-  border-radius: 6px;
-  padding: 4px 8px;
-  color: $text-primary;
-  font-size: 0.875rem;
-  outline: none;
-
-  &:focus {
-    box-shadow: 0 0 0 2px rgba($accent, 0.25);
-  }
-}
-
-.task-toggle {
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: $text-dim;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: color 0.2s ease, transform 0.15s ease;
-
-  .task-check-icon {
-    width: 18px;
-    height: 18px;
-
-    &--done {
-      color: $green-live;
-    }
-  }
-
-  &:hover {
-    color: $accent-light;
-    transform: scale(1.1);
-  }
-}
-
-.task-text {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: $text-primary;
-  line-height: 1.5;
-  flex: 1;
-  word-break: break-word;
-  transition: all 0.2s ease;
-
-  &--done {
-    text-decoration: line-through;
-    color: $text-dim;
-  }
-}
-
-// ── Floating Help Button ──────────────────────────────────────────────────────
-.fab-help {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  z-index: 100;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $accent, $accent-light);
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 24px $accent-glow;
-  transition: all 0.25s ease;
-
-  .fab-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  &:hover {
-    transform: scale(1.1) translateY(-2px);
-    box-shadow: 0 8px 32px rgba($accent, 0.55);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-// ── Keyframe Animations ───────────────────────────────────────────────────────
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.8); }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 $accent-glow, 0 8px 32px $accent-glow; }
-  50%       { box-shadow: 0 0 0 10px rgba($accent, 0.12), 0 8px 40px rgba($accent, 0.5); }
-}
-
-.empty-state {
-  padding: 32px 16px;
-  text-align: center;
-  color: $text-dim;
-  font-size: 0.875rem;
-
-  p {
-    margin: 0;
-  }
-}
-
-// ── Room Edit & Delete Header Buttons ─────────────────────────────────────────
-.edit-room-btn:hover {
-  color: $accent-light;
-  background-color: rgba($accent-light, 0.15);
-}
-
-.delete-room-btn:hover {
-  color: #EF4444;
-  background-color: rgba(#EF4444, 0.15);
-}
-
-// ── Modals ───────────────────────────────────────────────────────────────────
+/* ── Modals ────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -830,23 +77,23 @@ $circumference:   565.49; // 2π × 90
   flex-direction: column;
   gap: 20px;
   animation: scaleIn 0.2s ease;
+}
 
-  &--danger {
-    border-color: rgba(#EF4444, 0.4);
-  }
+.modal-card--danger {
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
 
-  h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: $text-primary;
-    margin: 0;
-  }
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin: 0;
 }
 
 .modal-form {
@@ -859,49 +106,49 @@ $circumference:   565.49; // 2π × 90
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
 
-  label {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: $text-dim;
-  }
+.form-group label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: $text-dim;
+}
 
-  .form-control {
-    background-color: rgba($bg-elevated, 0.8);
-    border: 1px solid $border-muted;
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: $text-primary;
-    font-size: 0.875rem;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+.form-control {
+  background-color: rgba(26, 25, 51, 0.8);
+  border: 1px solid $border-muted;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: $text-primary;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
 
-    &:focus {
-      border-color: $accent;
-      box-shadow: 0 0 0 2px rgba($accent, 0.25);
-    }
+.form-control:focus {
+  border-color: $accent;
+  box-shadow: 0 0 0 2px var(--room-accent-subtle);
+}
 
-    &.textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-  }
+.form-control.textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .modal-body {
   color: $text-dim;
   font-size: 0.9375rem;
   line-height: 1.5;
+}
 
-  strong {
-    color: $text-primary;
-  }
+.modal-body strong {
+  color: $text-primary;
 }
 
 .modal-error {
   padding: 10px 12px;
-  background-color: rgba(#EF4444, 0.1);
-  border: 1px solid rgba(#EF4444, 0.3);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 8px;
   color: #EF4444;
   font-size: 0.8125rem;
@@ -924,11 +171,11 @@ $circumference:   565.49; // 2π × 90
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
 
-  &:hover:not(:disabled) {
-    background-color: rgba(#fff, 0.05);
-    border-color: $border;
-  }
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: $border;
 }
 
 .btn-danger {
@@ -941,15 +188,32 @@ $circumference:   565.49; // 2π × 90
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
 
-  &:hover:not(:disabled) {
-    background-color: color.adjust(#EF4444, $lightness: -8%);
-  }
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: $text-dim;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.close-modal-btn:hover {
+  color: $text-primary;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 @keyframes fadeIn {
@@ -960,79 +224,4 @@ $circumference:   565.49; // 2π × 90
 @keyframes scaleIn {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
-}
-
-.task-delete {
-  background: transparent;
-  border: none;
-  padding: 6px;
-  cursor: pointer;
-  color: $text-dim;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 8px;
-  opacity: 0;
-  transition: all 0.2s ease;
-
-  .task-delete-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    color: #EF4444; // red
-    background-color: rgba(#EF4444, 0.1);
-  }
-}
-
-.task-card:hover .task-delete {
-  opacity: 1;
-}
-
-.state-container {
-  padding: 32px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: $text-dim;
-
-  .loading-spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid rgba($accent-light, 0.2);
-    border-top-color: $accent-light;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  &.error {
-    color: #EF4444;
-
-    .error-hint {
-      font-size: 0.875rem;
-      margin: 0;
-      text-align: center;
-    }
-
-    .btn {
-      padding: 6px 16px;
-      font-size: 0.75rem;
-      border-radius: 6px;
-      background-color: rgba(#EF4444, 0.1);
-      color: #EF4444;
-      border: 1px solid rgba(#EF4444, 0.2);
-      cursor: pointer;
-
-      &:hover {
-        background-color: rgba(#EF4444, 0.2);
-      }
-    }
-  }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }

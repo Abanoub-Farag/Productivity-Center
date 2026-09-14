@@ -26,6 +26,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Room Theme Tokens ────────────────────────────────────────────────────── */
+:root {
+  --room-bg-root: #0B0B14;
+  --room-bg-card: #131226;
+  --room-bg-card-alt: #16152B;
+  --room-bg-elevated: #1A1933;
+  --room-border: #232145;
+  --room-border-muted: rgba(35, 33, 69, 0.6);
+  --room-accent: #7C3AED;
+  --room-accent-light: #8B5CF6;
+  --room-accent-glow: rgba(124, 58, 237, 0.35);
+  --room-accent-subtle: rgba(124, 58, 237, 0.12);
+  --room-text-primary: #FFFFFF;
+  --room-text-muted: #94A3B8;
+  --room-text-dim: #6D6B8D;
+  --room-green-live: #10B981;
+  --room-green-live-bg: rgba(16, 185, 129, 0.12);
+  --room-ring-track: rgba(139, 92, 246, 0.15);
+}
+
 /* ── Light mode tokens (default) ───────────────────────────────────────────── */
 html {
   --clr-page-bg:       #f0f4ff;
