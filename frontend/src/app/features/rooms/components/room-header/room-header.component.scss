@@ -1,0 +1,180 @@
+$bg-card: var(--room-bg-card);
+$bg-elevated: var(--room-bg-elevated);
+$border: var(--room-border);
+$accent: var(--room-accent);
+$accent-light: var(--room-accent-light);
+$accent-subtle: var(--room-accent-subtle);
+$text-primary: var(--room-text-primary);
+$text-muted: var(--room-text-muted);
+$green-live: var(--room-green-live);
+$green-live-bg: var(--room-green-live-bg);
+
+.session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 36px;
+  background-color: $bg-card;
+  border-bottom: 1px solid $border;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: $bg-elevated;
+  border: 1px solid $border;
+  border-radius: 10px;
+  color: $text-muted;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.back-btn .back-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.back-btn:hover {
+  background-color: $accent-subtle;
+  border-color: $accent;
+  color: $accent-light;
+  transform: translateX(-2px);
+}
+
+.header-room-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-room-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 380px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-room-title .title-lock-icon {
+  width: 18px;
+  height: 18px;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background-color: $green-live-bg;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $green-live;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.live-badge .live-dot {
+  width: 7px;
+  height: 7px;
+  background-color: $green-live;
+  border-radius: 50%;
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: 10px;
+  color: $text-muted;
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.2s ease;
+}
+
+.icon-btn .btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-btn:hover {
+  background-color: $accent-subtle;
+  border-color: $accent;
+  color: $text-primary;
+}
+
+.favorite-btn.active {
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.favorite-btn.active .btn-icon {
+  fill: #EF4444;
+}
+
+.notification-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-btn .notification-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background-color: #EF4444;
+  border: 2px solid $bg-card;
+  border-radius: 50%;
+}
+
+.edit-room-btn:hover {
+  color: $accent-light;
+  background-color: rgba(139, 92, 246, 0.15);
+}
+
+.delete-room-btn:hover {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}

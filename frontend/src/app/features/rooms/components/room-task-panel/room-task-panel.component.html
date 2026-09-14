@@ -1,0 +1,119 @@
+<section class="split-panel tasks-panel" aria-label="Session Tasks">
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <lucide-icon [img]="CheckSquareIcon" class="panel-icon"></lucide-icon>
+      <span class="panel-title">SESSION TASKS</span>
+    </div>
+    <button class="add-task-btn" id="add-task-btn" aria-label="Add task" (click)="onAddTask.emit()">
+      <lucide-icon [img]="PlusIcon" class="add-icon"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="task-input-wrap">
+    <input
+      type="text"
+      class="task-input"
+      id="new-task-input"
+      placeholder="Add a new task..."
+      [value]="newTaskText()"
+      (input)="onNewTaskInput.emit($event)"
+      (keydown)="onNewTaskKeydown.emit($event)"
+      autocomplete="off"
+    />
+  </div>
+
+  <div class="state-container" *ngIf="isTasksLoading()">
+    <div class="loading-spinner"></div>
+    <p>Loading tasks…</p>
+  </div>
+  <div class="state-container error" *ngIf="tasksError()">
+    <p class="error-hint">{{ tasksError() }}</p>
+    <button class="btn btn-primary" (click)="onFetchTasks.emit()">Try Again</button>
+  </div>
+
+  <div class="task-update-error" *ngIf="taskUpdateError()">
+    <p>{{ taskUpdateError() }}</p>
+  </div>
+
+  <ul class="task-list" role="list" *ngIf="!isTasksLoading() && !tasksError() && tasks().length > 0">
+    <li
+      *ngFor="let task of tasks()"
+      class="task-card"
+      [class.task-card--done]="task.isCompleted"
+      [class.task-card--updating]="updatingTaskId() === task.id"
+      [id]="'task-' + task.id"
+    >
+      <button
+        class="task-toggle"
+        [attr.aria-label]="task.isCompleted ? 'Mark task incomplete' : 'Mark task complete'"
+        [disabled]="updatingTaskId() === task.id"
+        (click)="onToggleTask.emit(task)"
+      >
+        <lucide-icon
+          [img]="task.isCompleted ? CheckCircle2Icon : CircleIcon"
+          class="task-check-icon"
+          [class.task-check-icon--done]="task.isCompleted"
+        ></lucide-icon>
+      </button>
+
+      <ng-container *ngIf="editingTaskId() !== task.id; else editMode">
+        <span
+          class="task-text"
+          [class.task-text--done]="task.isCompleted"
+          (dblclick)="onStartEditTask.emit(task)"
+          title="Double click to edit title"
+        >{{ task.title }}</span>
+
+        <div class="task-actions">
+          <button
+            class="task-action-btn"
+            aria-label="Edit task title"
+            [disabled]="updatingTaskId() === task.id"
+            (click)="onStartEditTask.emit(task)"
+          >
+            <lucide-icon [img]="PencilIcon" class="task-action-icon"></lucide-icon>
+          </button>
+          <button
+            class="task-delete"
+            aria-label="Delete task"
+            [disabled]="updatingTaskId() === task.id"
+            (click)="onDeleteTask.emit(task.id)"
+          >
+            <lucide-icon [img]="Trash2Icon" class="task-delete-icon"></lucide-icon>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #editMode>
+        <div class="task-edit-container">
+          <input
+            type="text"
+            class="task-edit-input"
+            [value]="editingTaskTitle()"
+            (input)="onEditTaskInput.emit($event)"
+            (keydown.enter)="onSaveTaskTitle.emit(task)"
+            (keydown.escape)="onCancelEditTask.emit()"
+            autofocus
+          />
+          <button
+            class="task-action-btn task-action-btn--save"
+            aria-label="Save task title"
+            (click)="onSaveTaskTitle.emit(task)"
+          >
+            <lucide-icon [img]="CheckIcon" class="task-action-icon"></lucide-icon>
+          </button>
+          <button
+            class="task-action-btn task-action-btn--cancel"
+            aria-label="Cancel editing"
+            (click)="onCancelEditTask.emit()"
+          >
+            <lucide-icon [img]="XIcon" class="task-action-icon"></lucide-icon>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+  </ul>
+  <div class="empty-state" *ngIf="!isTasksLoading() && !tasksError() && tasks().length === 0">
+    <p>No tasks yet.</p>
+  </div>
+</section>

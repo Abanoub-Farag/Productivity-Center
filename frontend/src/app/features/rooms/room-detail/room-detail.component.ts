@@ -36,6 +36,8 @@ import {
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { RoomTimerComponent } from '../components/room-timer/room-timer.component';
 import { RoomMembersListComponent } from '../components/room-members-list/room-members-list.component';
+import { RoomHeaderComponent } from '../components/room-header/room-header.component';
+import { RoomTaskPanelComponent } from '../components/room-task-panel/room-task-panel.component';
 import { RoomStateService } from '../services/room-state.service';
 import { TaskService, TaskData, UpdateTaskRequest } from '../services/task.service';
 
@@ -49,7 +51,9 @@ import { TaskService, TaskData, UpdateTaskRequest } from '../services/task.servi
     LucideAngularModule,
     SidebarComponent,
     RoomTimerComponent,
-    RoomMembersListComponent
+    RoomMembersListComponent,
+    RoomHeaderComponent,
+    RoomTaskPanelComponent
   ],
   providers: [RoomStateService],
   templateUrl: './room-detail.component.html',

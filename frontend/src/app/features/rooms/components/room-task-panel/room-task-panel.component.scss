@@ -1,0 +1,353 @@
+$bg-card: var(--room-bg-card);
+$bg-elevated: var(--room-bg-elevated);
+$border: var(--room-border);
+$border-muted: var(--room-border-muted);
+$accent: var(--room-accent);
+$accent-light: var(--room-accent-light);
+$accent-subtle: var(--room-accent-subtle);
+$text-primary: var(--room-text-primary);
+$text-dim: var(--room-text-dim);
+$green-live: var(--room-green-live);
+
+.split-panel {
+  background-color: $bg-card;
+  border: 1px solid $border;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $border-muted;
+}
+
+.panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-icon {
+  width: 15px;
+  height: 15px;
+  color: $accent-light;
+}
+
+.panel-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $text-dim;
+}
+
+.task-input-wrap {
+  padding: 14px 16px;
+  border-bottom: 1px solid $border-muted;
+}
+
+.task-input {
+  width: 100%;
+  background-color: $bg-elevated;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: $text-primary;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.task-input::placeholder {
+  color: $text-dim;
+}
+
+.task-input:focus {
+  border-color: $accent;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+
+.add-task-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  background-color: $accent-subtle;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  color: $accent-light;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-task-btn .add-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-task-btn:hover {
+  background-color: $accent;
+  border-color: $accent;
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.add-task-btn:active {
+  transform: scale(0.95);
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: $bg-elevated;
+  border: 1px solid $border-muted;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.task-card:hover {
+  border-color: $border;
+  background-color: #16152B;
+}
+
+.task-card--done {
+  opacity: 0.55;
+}
+
+.task-card--done:hover {
+  opacity: 0.7;
+}
+
+.task-card--updating {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.task-update-error {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #EF4444;
+  font-size: 0.8125rem;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.task-card:hover .task-actions {
+  opacity: 1;
+}
+
+.task-action-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 6px;
+  color: $text-dim;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.task-action-btn .task-action-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.task-action-btn:hover {
+  color: $accent-light;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.task-action-btn--save:hover {
+  color: $green-live;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.task-action-btn--cancel:hover {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.task-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.task-edit-input {
+  flex: 1;
+  background-color: $bg-elevated;
+  border: 1px solid $accent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: $text-primary;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.task-edit-input:focus {
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+}
+
+.task-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: $text-dim;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.task-toggle .task-check-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.task-toggle .task-check-icon--done {
+  color: $green-live;
+}
+
+.task-toggle:hover {
+  color: $accent-light;
+  transform: scale(1.1);
+}
+
+.task-text {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: $text-primary;
+  line-height: 1.5;
+  flex: 1;
+  word-break: break-word;
+  transition: all 0.2s ease;
+}
+
+.task-text--done {
+  text-decoration: line-through;
+  color: $text-dim;
+}
+
+.task-delete {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: $text-dim;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.task-delete .task-delete-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.task-delete:hover {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.task-card:hover .task-delete {
+  opacity: 1;
+}
+
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: $text-dim;
+  font-size: 0.875rem;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.state-container {
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: $text-dim;
+}
+
+.state-container .loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-top-color: $accent-light;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.state-container.error {
+  color: #EF4444;
+}
+
+.state-container.error .error-hint {
+  font-size: 0.875rem;
+  margin: 0;
+  text-align: center;
+}
+
+.state-container.error .btn {
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  cursor: pointer;
+}
+
+.state-container.error .btn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

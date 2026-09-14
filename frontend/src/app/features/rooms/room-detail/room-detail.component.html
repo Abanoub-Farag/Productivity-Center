@@ -6,54 +6,16 @@
   <div class="session-main">
 
     <!-- ── Top Header Bar ───────────────────────────────────────────────── -->
-    <header class="session-header">
-      <div class="header-left">
-        <a routerLink="/rooms" class="back-btn" id="back-to-rooms-btn">
-          <lucide-icon [img]="ArrowLeftIcon" class="back-icon"></lucide-icon>
-        </a>
-        <div class="header-room-info">
-          <h1 class="header-room-title">
-            <lucide-icon *ngIf="room()?.visibility === 'PRIVATE'" [img]="LockIcon" class="title-lock-icon" title="Private Room"></lucide-icon>
-            {{ room()?.title || 'Design Critiques Session' }}
-          </h1>
-          <span class="live-badge" [class.retrying]="heartbeatStatus() === 'retrying'" [class.failed]="heartbeatStatus() === 'failed'">
-            <span class="live-dot"></span>
-            {{ heartbeatStatus() === 'retrying' ? 'RECONNECTING...' : (heartbeatStatus() === 'failed' ? 'DISCONNECTED' : 'LIVE') }}
-          </span>
-        </div>
-      </div>
-      <div class="header-right">
-        <button 
-          type="button" 
-          class="icon-btn favorite-btn" 
-          [class.active]="isFavorite()" 
-          [disabled]="isPendingFavorite()"
-          (click)="toggleFavorite()"
-          [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'">
-          <lucide-icon [img]="HeartIcon" class="btn-icon"></lucide-icon>
-        </button>
-        <button
-          *ngIf="isOwner()"
-          type="button"
-          class="icon-btn edit-room-btn"
-          (click)="openEditRoomModal()"
-          aria-label="Edit Room">
-          <lucide-icon [img]="PencilIcon" class="btn-icon"></lucide-icon>
-        </button>
-        <button
-          *ngIf="isOwner()"
-          type="button"
-          class="icon-btn delete-room-btn"
-          (click)="openDeleteRoomModal()"
-          aria-label="Delete Room">
-          <lucide-icon [img]="Trash2Icon" class="btn-icon"></lucide-icon>
-        </button>
-        <button class="icon-btn notification-btn" id="notification-btn" aria-label="Notifications">
-          <lucide-icon [img]="BellIcon" class="btn-icon"></lucide-icon>
-          <span class="notification-dot"></span>
-        </button>
-      </div>
-    </header>
+    <app-room-header
+      [room]="room()"
+      [heartbeatStatus]="heartbeatStatus()"
+      [isFavorite]="isFavorite()"
+      [isPendingFavorite]="isPendingFavorite()"
+      [isOwner]="isOwner()"
+      (toggleFavorite)="toggleFavorite()"
+      (editRoom)="openEditRoomModal()"
+      (deleteRoom)="openDeleteRoomModal()"
+    ></app-room-header>
 
     <!-- ── Body: 3-column layout (people | timer | tasks) ────────────────── -->
     <div class="session-body">
@@ -69,128 +31,28 @@
       <app-room-timer></app-room-timer>
 
       <!-- ═══ RIGHT COLUMN: Session Tasks ════════════════════════════════ -->
-      <section class="split-panel tasks-panel" aria-label="Session Tasks">
-        <div class="panel-header">
-          <div class="panel-header-left">
-            <lucide-icon [img]="CheckSquareIcon" class="panel-icon"></lucide-icon>
-            <span class="panel-title">SESSION TASKS</span>
-          </div>
-          <button class="add-task-btn" id="add-task-btn" aria-label="Add task" (click)="addTask()">
-            <lucide-icon [img]="PlusIcon" class="add-icon"></lucide-icon>
-          </button>
-        </div>
-
-        <div class="task-input-wrap">
-          <input
-            type="text"
-            class="task-input"
-            id="new-task-input"
-            placeholder="Add a new task..."
-            [value]="newTaskText()"
-            (input)="onNewTaskInput($event)"
-            (keydown)="onNewTaskKeydown($event)"
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="state-container" *ngIf="isTasksLoading()">
-          <div class="loading-spinner"></div>
-          <p>Loading tasks…</p>
-        </div>
-        <div class="state-container error" *ngIf="tasksError()">
-          <p class="error-hint">{{ tasksError() }}</p>
-          <button class="btn btn-primary" (click)="fetchTasks()">Try Again</button>
-        </div>
-
-        <div class="task-update-error" *ngIf="taskUpdateError()">
-          <p>{{ taskUpdateError() }}</p>
-        </div>
-
-        <ul class="task-list" role="list" *ngIf="!isTasksLoading() && !tasksError() && tasks().length > 0">
-          <li
-            *ngFor="let task of tasks()"
-            class="task-card"
-            [class.task-card--done]="task.isCompleted"
-            [class.task-card--updating]="updatingTaskId() === task.id"
-            [id]="'task-' + task.id"
-          >
-            <button
-              class="task-toggle"
-              [attr.aria-label]="task.isCompleted ? 'Mark task incomplete' : 'Mark task complete'"
-              [disabled]="updatingTaskId() === task.id"
-              (click)="toggleTask(task)"
-            >
-              <lucide-icon
-                [img]="task.isCompleted ? CheckCircle2Icon : CircleIcon"
-                class="task-check-icon"
-                [class.task-check-icon--done]="task.isCompleted"
-              ></lucide-icon>
-            </button>
-
-            <ng-container *ngIf="editingTaskId() !== task.id; else editMode">
-              <span
-                class="task-text"
-                [class.task-text--done]="task.isCompleted"
-                (dblclick)="startEditTask(task)"
-                title="Double click to edit title"
-              >{{ task.title }}</span>
-
-              <div class="task-actions">
-                <button
-                  class="task-action-btn"
-                  aria-label="Edit task title"
-                  [disabled]="updatingTaskId() === task.id"
-                  (click)="startEditTask(task)"
-                >
-                  <lucide-icon [img]="PencilIcon" class="task-action-icon"></lucide-icon>
-                </button>
-                <button
-                  class="task-delete"
-                  aria-label="Delete task"
-                  [disabled]="updatingTaskId() === task.id"
-                  (click)="deleteTask(task.id)"
-                >
-                  <lucide-icon [img]="Trash2Icon" class="task-delete-icon"></lucide-icon>
-                </button>
-              </div>
-            </ng-container>
-
-            <ng-template #editMode>
-              <div class="task-edit-container">
-                <input
-                  type="text"
-                  class="task-edit-input"
-                  [value]="editingTaskTitle()"
-                  (input)="onEditTaskInput($event)"
-                  (keydown.enter)="saveTaskTitle(task)"
-                  (keydown.escape)="cancelEditTask()"
-                  autofocus
-                />
-                <button
-                  class="task-action-btn task-action-btn--save"
-                  aria-label="Save task title"
-                  (click)="saveTaskTitle(task)"
-                >
-                  <lucide-icon [img]="CheckIcon" class="task-action-icon"></lucide-icon>
-                </button>
-                <button
-                  class="task-action-btn task-action-btn--cancel"
-                  aria-label="Cancel editing"
-                  (click)="cancelEditTask()"
-                >
-                  <lucide-icon [img]="XIcon" class="task-action-icon"></lucide-icon>
-                </button>
-              </div>
-            </ng-template>
-          </li>
-        </ul>
-        <div class="empty-state" *ngIf="!isTasksLoading() && !tasksError() && tasks().length === 0">
-          <p>No tasks yet.</p>
-        </div>
-      </section>
+      <app-room-task-panel
+        [tasks]="tasks()"
+        [isTasksLoading]="isTasksLoading()"
+        [tasksError]="tasksError()"
+        [taskUpdateError]="taskUpdateError()"
+        [updatingTaskId]="updatingTaskId()"
+        [newTaskText]="newTaskText()"
+        [editingTaskId]="editingTaskId()"
+        [editingTaskTitle]="editingTaskTitle()"
+        (onAddTask)="addTask()"
+        (onNewTaskInput)="onNewTaskInput($event)"
+        (onNewTaskKeydown)="onNewTaskKeydown($event)"
+        (onFetchTasks)="fetchTasks()"
+        (onToggleTask)="toggleTask($event)"
+        (onStartEditTask)="startEditTask($event)"
+        (onDeleteTask)="deleteTask($event)"
+        (onEditTaskInput)="onEditTaskInput($event)"
+        (onSaveTaskTitle)="saveTaskTitle($event)"
+        (onCancelEditTask)="cancelEditTask()"
+      ></app-room-task-panel>
 
     </div><!-- /session-body -->
-
 
   </div><!-- /session-main -->
 
@@ -234,7 +96,7 @@
             id="edit-room-visibility"
             class="form-control"
             [ngModel]="editRoomVisibility()"
-            (ngModelChange)="editRoomVisibility.set($event)"
+            (ngModelChange)="roomState.setEditRoomVisibility($event)"
             name="visibility"
           >
             <option value="PUBLIC">Public</option>
