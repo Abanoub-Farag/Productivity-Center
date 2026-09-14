@@ -17,13 +17,13 @@
     </button>
   </div>
 
-  <div class="sidebar__profile" [title]="isCollapsed() ? userName : ''">
+  <div class="sidebar__profile" [title]="isCollapsed() ? userName() : ''">
     <div class="profile-avatar">
-      <div class="avatar-initials">{{ userInitials }}</div>
+      <div class="avatar-initials">{{ userInitials() }}</div>
       <span class="status-indicator"></span>
     </div>
     <div class="profile-info">
-      <span class="profile-name">{{ userName }}</span>
+      <span class="profile-name">{{ userName() }}</span>
       <span class="profile-status">Online</span>
     </div>
   </div>
