@@ -1,0 +1,184 @@
+$bg-card: var(--room-bg-card);
+$bg-elevated: var(--room-bg-elevated);
+$border: var(--room-border);
+$accent: var(--room-accent);
+$accent-light: var(--room-accent-light);
+$accent-subtle: var(--room-accent-subtle);
+$accent-glow: var(--room-accent-glow, rgba(139, 92, 246, 0.3));
+$text-primary: var(--room-text-primary);
+$text-muted: var(--room-text-muted);
+$text-dim: var(--room-text-dim);
+$ring-track: rgba(255, 255, 255, 0.06);
+
+.timer-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 24px;
+  background-color: $bg-card;
+  border: 1px solid $border;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+
+  // Ambient glow from bottom-center
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 140px;
+    background: radial-gradient(ellipse, rgba($accent, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+}
+
+.timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background-color: $accent-subtle;
+  border: 1px solid rgba($accent-light, 0.3);
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $accent-light;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  .timer-badge-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// ── SVG Ring ──────────────────────────────────────────────────────────────────
+.ring-wrapper {
+  position: relative;
+  width: 224px;
+  height: 224px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  .ring-track {
+    stroke: $ring-track;
+  }
+
+  .ring-progress {
+    transition: stroke-dashoffset 1s linear;
+  }
+}
+
+.ring-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.timer-display {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: $text-primary;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba($accent-light, 0.4);
+}
+
+.timer-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: $text-dim;
+  text-transform: uppercase;
+}
+
+// ── Timer Controls ────────────────────────────────────────────────────────────
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  outline: none;
+
+  .ctrl-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .ctrl-icon--lg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &--secondary {
+    width: 48px;
+    height: 48px;
+    background-color: $bg-elevated;
+    border: 1px solid $border;
+    color: $text-muted;
+
+    &:hover {
+      background-color: $accent-subtle;
+      border-color: $accent;
+      color: $accent-light;
+      transform: scale(1.06);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  &--primary {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, $accent, $accent-light);
+    color: #fff;
+    box-shadow:
+      0 0 0 0 $accent-glow,
+      0 8px 32px $accent-glow;
+    animation: glow-pulse 2.4s ease-in-out infinite;
+
+    &:hover {
+      transform: scale(1.07);
+      box-shadow:
+        0 0 0 8px rgba($accent, 0.2),
+        0 8px 40px rgba($accent, 0.55);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 $accent-glow, 0 8px 32px $accent-glow; }
+  50%       { box-shadow: 0 0 0 10px rgba($accent, 0.12), 0 8px 40px rgba($accent, 0.5); }
+}

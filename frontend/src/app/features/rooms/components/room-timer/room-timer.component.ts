@@ -73,7 +73,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
       </div>
     </section>
   `,
-  styleUrls: ['../../room-detail/room-detail.component.scss']
+  styleUrls: ['./room-timer.component.scss']
 })
 export class RoomTimerComponent implements OnDestroy {
   readonly ClockIcon = Clock;
