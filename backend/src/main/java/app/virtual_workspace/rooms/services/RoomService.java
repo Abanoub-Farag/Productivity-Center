@@ -84,8 +84,8 @@ public class RoomService {
             room.setDescription(updateRoomRequestDto.getDescription());
         }
 
-        if (updateRoomRequestDto.getVisability() != null) {
-            room.setVisibility(updateRoomRequestDto.getVisability());
+        if (updateRoomRequestDto.getVisibility() != null) {
+            room.setVisibility(updateRoomRequestDto.getVisibility());
         }
 
         roomRepository.save(room);

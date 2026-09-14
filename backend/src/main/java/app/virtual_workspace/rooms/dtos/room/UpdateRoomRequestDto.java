@@ -18,6 +18,6 @@ public class UpdateRoomRequestDto {
 
     private String description;
 
-    private Visibility visability;
+    private Visibility visibility;
 
 }
