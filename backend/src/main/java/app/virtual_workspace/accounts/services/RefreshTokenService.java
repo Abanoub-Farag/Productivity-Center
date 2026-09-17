@@ -34,7 +34,7 @@ public class RefreshTokenService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId)
+        var refreshToken = refreshTokenRepository.findByUserId(userId)
                 .orElseGet(() -> RefreshToken.builder()
                         .user(user)
                         .build());
@@ -54,7 +54,7 @@ public class RefreshTokenService {
 
         String requestToken = payload.get("refreshToken");
 
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(requestToken)
+        var refreshToken = refreshTokenRepository.findByToken(requestToken)
                 .orElseThrow(() -> new TokenRefreshException("Invalid refresh token."));
 
         if (isTokenExpired(refreshToken)) {
@@ -70,6 +70,14 @@ public class RefreshTokenService {
 
         return AuthResponseDto.builder().jwtToken(newJwt).refreshToken(newRefreshToken).build();
 
+    }
+
+    @Transactional
+    public void revokeToken(String tokenValue) {
+        var token = refreshTokenRepository.findByToken(tokenValue)
+                .orElseThrow(() -> new TokenRefreshException("Invalid refresh token."));
+
+        refreshTokenRepository.delete(token);
     }
 
 }

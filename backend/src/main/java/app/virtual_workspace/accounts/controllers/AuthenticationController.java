@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import app.virtual_workspace.accounts.dtos.auth.AuthResponseDto;
 import app.virtual_workspace.accounts.dtos.auth.LoginDto;
+import app.virtual_workspace.accounts.dtos.auth.LogoutRequestDto;
 import app.virtual_workspace.accounts.dtos.auth.RegisterDto;
 import app.virtual_workspace.accounts.dtos.data.UserDataDto;
 import app.virtual_workspace.accounts.repositories.RefreshTokenRepository;
 import app.virtual_workspace.accounts.services.RefreshTokenService;
 import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.accounts.services.UserService;
-import app.virtual_workspace.security.JwtService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,6 @@ public class AuthenticationController {
     private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
-    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponseDto>> register(@Valid @RequestBody RegisterDto request) {
@@ -60,7 +59,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponseDto>>> refreshToken(@RequestBody Map<String, String> payload) {
+    public ResponseEntity<ApiResponse<AuthResponseDto>> refreshToken(@RequestBody Map<String, String> payload) {
         AuthResponseDto authResponseDto = refreshTokenService.refreshToken(payload);
 
         ApiResponse<AuthResponseDto> response = ApiResponse.<AuthResponseDto>builder()
@@ -73,33 +72,15 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody Map<String, String> payload) {
-        String requestToken = payload.get("refreshToken");
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequestDto request) {
+        refreshTokenService.revokeToken(request.refreshToken());
 
-        if (requestToken == null || requestToken.isBlank()) {
-            ApiResponse<Void> response = ApiResponse.<Void>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message("Refresh token is required.")
-                    .build();
-            return ResponseEntity.badRequest().body(response);
-        }
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("Logged out successfully.")
+                .build();
 
-        return refreshTokenRepository.findByToken(requestToken)
-                .map(token -> {
-                    refreshTokenRepository.delete(token);
-                    ApiResponse<Void> response = ApiResponse.<Void>builder()
-                            .status(HttpStatus.OK.value())
-                            .message("Logged out successfully.")
-                            .build();
-                    return ResponseEntity.ok(response);
-                })
-                .orElseGet(() -> {
-                    ApiResponse<Void> response = ApiResponse.<Void>builder()
-                            .status(HttpStatus.BAD_REQUEST.value())
-                            .message("Invalid refresh token.")
-                            .build();
-                    return ResponseEntity.badRequest().body(response);
-                });
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}/data")
