@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.accounts.services.UserAuthService;
-import app.virtual_workspace.accounts.services.UserService;
 import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.room.AllRoomResponseDto;
@@ -28,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final UserService userService;
     private final UserAuthService userAuthService;
     private final RoomMapper roomMapper;
 
@@ -43,16 +41,14 @@ public class RoomService {
             CreateRoomRequestDto createRoomRequestDto) {
         User user = userAuthService.getAuthenticatedUser();
 
-        if (user.getRoom() != null) {
+        if (roomRepository.existsByUserId(user.getId())) {
             throw new ResourceAlreadyExistsException("User already has room");
         }
 
         Room room = roomMapper.createRoomRequestDtoToModel(createRoomRequestDto);
 
         room.setUser(user);
-        user.setRoom(room);
         roomRepository.save(room);
-        userService.saveUser(user);
 
         return roomMapper.createRoomRequestToResponse(room);
     }
@@ -97,12 +93,6 @@ public class RoomService {
     public void deleteRoom(Long roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room Not Found"));
-
-        User user = room.getUser();
-        if (user != null) {
-            user.setRoom(null);
-            userService.saveUser(user);
-        }
 
         roomRepository.delete(room);
     }

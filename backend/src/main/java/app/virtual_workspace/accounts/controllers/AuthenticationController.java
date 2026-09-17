@@ -16,7 +16,6 @@ import app.virtual_workspace.accounts.dtos.auth.LoginDto;
 import app.virtual_workspace.accounts.dtos.auth.LogoutRequestDto;
 import app.virtual_workspace.accounts.dtos.auth.RegisterDto;
 import app.virtual_workspace.accounts.dtos.data.UserDataDto;
-import app.virtual_workspace.accounts.repositories.RefreshTokenRepository;
 import app.virtual_workspace.accounts.services.RefreshTokenService;
 import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.accounts.services.UserService;
@@ -31,7 +30,6 @@ public class AuthenticationController {
 
     private final UserAuthService userAuthService;
     private final UserService userService;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")

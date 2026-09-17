@@ -9,16 +9,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto;
 import app.virtual_workspace.rooms.models.RoomMembers;
 
-public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long>{
-    
+public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> {
+
     boolean existsByUserIdAndRoomId(Long userId, Long roomId);
 
     @Transactional
     @Modifying
     @Query("UPDATE RoomMembers r SET r.lastActiveAt = :localDateTime WHERE r.user.id = :userId AND r.room.id = :roomId")
-    void updateLastActiveAt(@Param("userId") Long userId, @Param("roomId") Long roomId, @Param("localDateTime") LocalDateTime localDateTime);
+    void updateLastActiveAt(@Param("userId") Long userId, @Param("roomId") Long roomId,
+            @Param("localDateTime") LocalDateTime localDateTime);
 
     @Transactional
     @Modifying
@@ -26,4 +28,20 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long>{
     void disconnectNonActiveUsers(@Param("localDateTime") LocalDateTime localDateTime);
 
     List<RoomMembers> findRoomMembersByRoomId(Long roomId);
+
+    @Query("""
+                SELECT new RoomMemberDto(
+                    u.id,
+                    u.firstName,
+                    u.lastName,
+                    p.bio,
+                    p.gender,
+                    p.dateOfBirth
+                )
+                FROM RoomMembers rm
+                JOIN rm.user u
+                LEFT JOIN Profile p ON p.user = u
+                WHERE rm.room.id = :roomId
+            """)
+    List<RoomMemberDto> findByRoomIdWithProfileAndUser(@Param("roomId") Long roomId);
 }

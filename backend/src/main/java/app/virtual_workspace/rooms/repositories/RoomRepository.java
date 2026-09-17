@@ -17,4 +17,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
     Slice<Room> findByVisibilityNot(Visibility visibility, Pageable pageable);
 
+    Boolean existsByUserId(Long userId);
+
 }
