@@ -1,11 +1,8 @@
 package app.virtual_workspace.exceptions;
 
-import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
-import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
-import app.virtual_workspace.shared.dtos.ApiResponse;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,291 +16,301 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
+import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
+import app.virtual_workspace.exceptions.custom.TokenRefreshException;
+import app.virtual_workspace.shared.dtos.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // ── 1. Validation Errors (400) ───────────────────────────────────────────
+        // ── 1. Validation Errors (400) ───────────────────────────────────────────
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleValidationException(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request
-    ){
-        List<ErrorResponse.ValidationError> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> ErrorResponse.ValidationError.builder()
-                        .field(error.getField())
-                        .message(error.getDefaultMessage())
-                        .build())
-                .toList();
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleValidationException(
+                        MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
+                List<ErrorResponse.ValidationError> errors = ex.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .map(error -> ErrorResponse.ValidationError.builder()
+                                                .field(error.getField())
+                                                .message(error.getDefaultMessage())
+                                                .build())
+                                .toList();
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(ex.getStatusCode().value())
-                .message("Validation failed for one or more fields")
-                .error("Validation Failed")
-                .errors(errors)
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(ex.getStatusCode().value())
+                                .message("Validation failed for one or more fields")
+                                .error("Validation Failed")
+                                .errors(errors)
+                                .path(request.getRequestURI())
+                                .build();
 
-        return buildResponseEntity(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields", errorResponse);
-    }
+                return buildResponseEntity(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields",
+                                errorResponse);
+        }
 
-    // ── 2. Resource Not Found (404) ──────────────────────────────────────────
+        // ── 2. Resource Not Found (404) ──────────────────────────────────────────
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleResourceNotFoundException(
-            ResourceNotFoundException ex,
-            HttpServletRequest request
-    ){
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleResourceNotFoundException(
+                        ResourceNotFoundException ex,
+                        HttpServletRequest request) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.NOT_FOUND.value())
+                                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return buildResponseEntity(HttpStatus.NOT_FOUND, ex.getMessage(), errorResponse);
-    }
+                return buildResponseEntity(HttpStatus.NOT_FOUND, ex.getMessage(), errorResponse);
+        }
 
-    // ── 3. Resource Already Exists / Conflict (409) ──────────────────────────
+        // ── 3. Resource Already Exists / Conflict (409) ──────────────────────────
 
-    @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleResourceAlreadyExistsException(
-            ResourceAlreadyExistsException ex,
-            HttpServletRequest request
-    ){
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error(HttpStatus.CONFLICT.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        @ExceptionHandler(ResourceAlreadyExistsException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleResourceAlreadyExistsException(
+                        ResourceAlreadyExistsException ex,
+                        HttpServletRequest request) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.CONFLICT.value())
+                                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return buildResponseEntity(HttpStatus.CONFLICT, ex.getMessage(), errorResponse);
-    }
+                return buildResponseEntity(HttpStatus.CONFLICT, ex.getMessage(), errorResponse);
+        }
 
-    // ── 4. Database Integrity Violation — duplicate key etc. (409) ───────────
+        // ── 4. Database Integrity Violation — duplicate key etc. (409) ───────────
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex,
-            HttpServletRequest request
-    ){
-        log.error("Data integrity violation at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleDataIntegrityViolationException(
+                        DataIntegrityViolationException ex,
+                        HttpServletRequest request) {
+                log.error("Data integrity violation at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-        String friendlyMessage = "A record with the provided details already exists. " +
-                "Please check your input and try again.";
+                String friendlyMessage = "A record with the provided details already exists. " +
+                                "Please check your input and try again.";
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error(HttpStatus.CONFLICT.getReasonPhrase())
-                .message(friendlyMessage)
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.CONFLICT.value())
+                                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                                .message(friendlyMessage)
+                                .path(request.getRequestURI())
+                                .build();
 
-        return buildResponseEntity(HttpStatus.CONFLICT, friendlyMessage, errorResponse);
-    }
+                return buildResponseEntity(HttpStatus.CONFLICT, friendlyMessage, errorResponse);
+        }
 
-    // ── 5. Insufficient Authentication (401) ─────────────────────────────────
+        // ── 5. Insufficient Authentication (401) ─────────────────────────────────
 
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleInsufficientAuthenticationException(
-            InsufficientAuthenticationException ex,
-            HttpServletRequest request
-    ){
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message("Full authentication is required to access this resource")
-                .path(request.getRequestURI())
-                .build();
+        @ExceptionHandler(InsufficientAuthenticationException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleInsufficientAuthenticationException(
+                        InsufficientAuthenticationException ex,
+                        HttpServletRequest request) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                                .message("Full authentication is required to access this resource")
+                                .path(request.getRequestURI())
+                                .build();
 
-        ApiResponse<ErrorResponse> response = ApiResponse.<ErrorResponse>builder()
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Unauthorized access")
-                .errors(errorResponse)
-                .build();
+                ApiResponse<ErrorResponse> response = ApiResponse.<ErrorResponse>builder()
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .message("Unauthorized access")
+                                .errors(errorResponse)
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
 
-    // ── 6. Bad Credentials — wrong email / password (401) ────────────────────
+        // ── 6. Bad Credentials — wrong email / password (401) ────────────────────
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleBadCredentialsException(
-            BadCredentialsException ex,
-            HttpServletRequest request
-    ){
-        String message = "The email or password you entered is incorrect. Please double-check and try again.";
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleBadCredentialsException(
+                        BadCredentialsException ex,
+                        HttpServletRequest request) {
+                String message = "The email or password you entered is incorrect. Please double-check and try again.";
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
-    }
+                return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
+        }
 
-    // ── 7. Broader AuthenticationException fallback (401) ────────────────────
+        @ExceptionHandler(TokenRefreshException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleTokenRefreshException(
+                        TokenRefreshException ex,
+                        HttpServletRequest request) {
+                log.warn("Token refresh failure at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthenticationException(
-            AuthenticationException ex,
-            HttpServletRequest request
-    ){
-        log.warn("Authentication failure at [{}]: {}", request.getRequestURI(), ex.getMessage());
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "Authentication failed. Please check your credentials and try again.";
+                return buildResponseEntity(HttpStatus.BAD_REQUEST, ex.getMessage(), errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 7. Broader AuthenticationException fallback (401) ────────────────────
 
-        return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
-    }
+        @ExceptionHandler(AuthenticationException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthenticationException(
+                        AuthenticationException ex,
+                        HttpServletRequest request) {
+                log.warn("Authentication failure at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-    // ── 8. JWT — Expired Token (401) ──────────────────────────────────────────
+                String message = "Authentication failed. Please check your credentials and try again.";
 
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleExpiredJwtException(
-            ExpiredJwtException ex,
-            HttpServletRequest request
-    ) {
-        log.warn("Expired JWT at [{}]", request.getRequestURI());
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "Your session has expired. Please log in again.";
+                return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 8. JWT — Expired Token (401) ──────────────────────────────────────────
 
-        return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
-    }
+        @ExceptionHandler(ExpiredJwtException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleExpiredJwtException(
+                        ExpiredJwtException ex,
+                        HttpServletRequest request) {
+                log.warn("Expired JWT at [{}]", request.getRequestURI());
 
-    // ── 9. JWT — Invalid / Malformed / Signature mismatch (401) ─────────────
+                String message = "Your session has expired. Please log in again.";
 
-    @ExceptionHandler(JwtException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleJwtException(
-            JwtException ex,
-            HttpServletRequest request
-    ) {
-        log.warn("Invalid JWT at [{}]: {}", request.getRequestURI(), ex.getMessage());
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "Invalid or malformed authentication token. Please log in again.";
+                return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 9. JWT — Invalid / Malformed / Signature mismatch (401) ─────────────
 
-        return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
-    }
+        @ExceptionHandler(JwtException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleJwtException(
+                        JwtException ex,
+                        HttpServletRequest request) {
+                log.warn("Invalid JWT at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-    // ── 10. Unhandled Runtime Exceptions (500) ───────────────────────────────
+                String message = "Invalid or malformed authentication token. Please log in again.";
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleRuntimeException(
-            RuntimeException ex,
-            HttpServletRequest request
-    ){
-        log.error("Unhandled runtime exception at [{}]", request.getRequestURI(), ex);
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
+                return buildResponseEntity(HttpStatus.UNAUTHORIZED, message, errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 10. Unhandled Runtime Exceptions (500) ───────────────────────────────
 
-        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, message, errorResponse);
-    }
+        @ExceptionHandler(RuntimeException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleRuntimeException(
+                        RuntimeException ex,
+                        HttpServletRequest request) {
+                log.error("Unhandled runtime exception at [{}]", request.getRequestURI(), ex);
 
-    // ── 7. Broadest Catch-All — Checked Exceptions (500) ────────────────────
+                String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleGenericException(
-            Exception ex,
-            HttpServletRequest request
-    ){
-        log.error("Unexpected exception at [{}]", request.getRequestURI(), ex);
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
+                return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, message, errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 7. Broadest Catch-All — Checked Exceptions (500) ────────────────────
 
-        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, message, errorResponse);
-    }
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleGenericException(
+                        Exception ex,
+                        HttpServletRequest request) {
+                log.error("Unexpected exception at [{}]", request.getRequestURI(), ex);
 
-    // ── 8. Access Denied — Checked Exceptions (403) ────────────────────
+                String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
 
-    @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthorizationDeniedException(
-            AuthorizationDeniedException ex,
-            HttpServletRequest request
-    ){
-        log.warn("Access denied at [{}]: {}", request.getRequestURI(), ex.getMessage());
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        String message = "You do not have permission to perform this action.";
+                return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, message, errorResponse);
+        }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timeStamp(LocalDateTime.now())
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .build();
+        // ── 8. Access Denied — Checked Exceptions (403) ────────────────────
 
-        return buildResponseEntity(HttpStatus.FORBIDDEN, message, errorResponse);
-    }
+        @ExceptionHandler(AuthorizationDeniedException.class)
+        public ResponseEntity<ApiResponse<ErrorResponse>> handleAuthorizationDeniedException(
+                        AuthorizationDeniedException ex,
+                        HttpServletRequest request) {
+                log.warn("Access denied at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-    // ── Shared builder ───────────────────────────────────────────────────────
+                String message = "You do not have permission to perform this action.";
 
-    private ResponseEntity<ApiResponse<ErrorResponse>> buildResponseEntity(
-            HttpStatus status,
-            String message,
-            ErrorResponse errorResponse
-    ) {
-        ApiResponse<ErrorResponse> response = ApiResponse.<ErrorResponse>builder()
-                .status(status.value())
-                .message(message)
-                .errors(errorResponse)
-                .build();
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timeStamp(LocalDateTime.now())
+                                .status(HttpStatus.FORBIDDEN.value())
+                                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                                .message(message)
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity.status(status).body(response);
-    }
+                return buildResponseEntity(HttpStatus.FORBIDDEN, message, errorResponse);
+        }
+
+        // ── Shared builder ───────────────────────────────────────────────────────
+
+        private ResponseEntity<ApiResponse<ErrorResponse>> buildResponseEntity(
+                        HttpStatus status,
+                        String message,
+                        ErrorResponse errorResponse) {
+                ApiResponse<ErrorResponse> response = ApiResponse.<ErrorResponse>builder()
+                                .status(status.value())
+                                .message(message)
+                                .errors(errorResponse)
+                                .build();
+
+                return ResponseEntity.status(status).body(response);
+        }
 
 }
