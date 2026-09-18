@@ -50,7 +50,7 @@ public class UserAuthService {
         applicationEventPublisher.publishEvent(event);
 
         String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getId());
-        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
+        String refreshToken = refreshTokenService.createRefreshToken(savedUser.getId()).getToken();
 
         return AuthResponseDto.builder().jwtToken(token).refreshToken(refreshToken).build();
     }
@@ -84,6 +84,6 @@ public class UserAuthService {
     public boolean isOwner(Long userId) {
         User user = getAuthenticatedUser();
 
-        return userId.equals(user.getId());
+        return java.util.Objects.equals(userId, user.getId());
     }
 }

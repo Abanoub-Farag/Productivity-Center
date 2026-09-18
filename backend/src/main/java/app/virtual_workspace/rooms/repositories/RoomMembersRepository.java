@@ -30,11 +30,12 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
     List<RoomMembers> findRoomMembersByRoomId(Long roomId);
 
     @Query("""
-                SELECT new RoomMemberDto(
+                SELECT new app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto(
                     u.id,
                     u.firstName,
                     u.lastName,
                     p.bio,
+                    rm.status,
                     p.gender,
                     p.dateOfBirth
                 )

@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         p.bio,
                         p.gender,
                         p.dateOfBirth,
-                        r.roomId
+                        r.id
                     )
                 FROM User u
                 LEFT JOIN Profile p ON p.user = u
