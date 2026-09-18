@@ -3,6 +3,7 @@ package app.virtual_workspace.accounts.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import app.virtual_workspace.accounts.dtos.data.UpdateUserDataDto;
 import app.virtual_workspace.accounts.dtos.data.UserDataDto;
 import app.virtual_workspace.accounts.models.Profile;
 import app.virtual_workspace.accounts.models.User;
@@ -28,4 +29,6 @@ public interface UserMapper {
 
     @Mapping(target = "id", source = "user.id")
     UserDataDto touserDataDto(User user, Profile profile, Long roomsId);
+
+    UpdateUserDataDto toUserUpdateDataDto(User user);
 }

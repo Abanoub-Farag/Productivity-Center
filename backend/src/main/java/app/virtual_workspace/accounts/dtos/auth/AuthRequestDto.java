@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class LoginDto {
+public class AuthRequestDto {
 
     @NotBlank
     @Email

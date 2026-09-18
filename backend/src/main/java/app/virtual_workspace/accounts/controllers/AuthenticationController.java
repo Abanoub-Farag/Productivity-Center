@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.virtual_workspace.accounts.dtos.auth.AuthRequestDto;
 import app.virtual_workspace.accounts.dtos.auth.AuthResponseDto;
-import app.virtual_workspace.accounts.dtos.auth.LoginDto;
+import app.virtual_workspace.accounts.dtos.auth.CreateUserRequestDto;
 import app.virtual_workspace.accounts.dtos.auth.LogoutRequestDto;
-import app.virtual_workspace.accounts.dtos.auth.RegisterDto;
 import app.virtual_workspace.accounts.dtos.data.UserDataDto;
 import app.virtual_workspace.accounts.services.RefreshTokenService;
 import app.virtual_workspace.accounts.services.UserAuthService;
@@ -33,7 +33,7 @@ public class AuthenticationController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@Valid @RequestBody RegisterDto request) {
+    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@Valid @RequestBody CreateUserRequestDto request) {
         AuthResponseDto authResponseDto = userAuthService.register(request);
         ApiResponse<AuthResponseDto> response = ApiResponse.<AuthResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
@@ -45,7 +45,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@Valid @RequestBody LoginDto user) {
+    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@Valid @RequestBody AuthRequestDto user) {
         AuthResponseDto authResponseDto = userAuthService.login(user);
         ApiResponse<AuthResponseDto> response = ApiResponse.<AuthResponseDto>builder()
                 .status(HttpStatus.OK.value())

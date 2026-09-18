@@ -1,16 +1,5 @@
 package app.virtual_workspace.accounts.services;
 
-import app.virtual_workspace.accounts.dtos.UserPrincipal;
-import app.virtual_workspace.accounts.dtos.auth.AuthResponseDto;
-import app.virtual_workspace.accounts.dtos.auth.LoginDto;
-import app.virtual_workspace.accounts.dtos.auth.RegisterDto;
-import app.virtual_workspace.accounts.events.UserRegisteredEvent;
-import app.virtual_workspace.accounts.mappers.AuthMapper;
-import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.repositories.UserRepository;
-import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
-import app.virtual_workspace.security.JwtService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -20,6 +9,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import app.virtual_workspace.accounts.dtos.UserPrincipal;
+import app.virtual_workspace.accounts.dtos.auth.AuthRequestDto;
+import app.virtual_workspace.accounts.dtos.auth.AuthResponseDto;
+import app.virtual_workspace.accounts.dtos.auth.CreateUserRequestDto;
+import app.virtual_workspace.accounts.events.UserRegisteredEvent;
+import app.virtual_workspace.accounts.mappers.AuthMapper;
+import app.virtual_workspace.accounts.models.User;
+import app.virtual_workspace.accounts.repositories.UserRepository;
+import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
+import app.virtual_workspace.security.JwtService;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
@@ -34,11 +35,10 @@ public class UserAuthService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public AuthResponseDto register(RegisterDto request){
+    public AuthResponseDto register(CreateUserRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException(
-                    "An account with this email already exists. Please log in or use a different address."
-            );
+                    "An account with this email already exists. Please log in or use a different address.");
         }
 
         User user = authMapper.registerDtoToModel(request);
@@ -56,9 +56,10 @@ public class UserAuthService {
     }
 
     @Transactional
-    public AuthResponseDto login(LoginDto request){
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        
+    public AuthResponseDto login(AuthRequestDto request) {
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+
         User user = userRepository.findUserByEmail(request.getEmail())
                 .orElseThrow(() -> new InsufficientAuthenticationException("User not found"));
 
@@ -67,10 +68,11 @@ public class UserAuthService {
         return AuthResponseDto.builder().jwtToken(token).refreshToken(refreshToken).build();
     }
 
-    public User getAuthenticatedUser(){
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof UserPrincipal)){
+    @Transactional(readOnly = true)
+    public User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof UserPrincipal)) {
             throw new InsufficientAuthenticationException("User not authenticated");
         }
 
