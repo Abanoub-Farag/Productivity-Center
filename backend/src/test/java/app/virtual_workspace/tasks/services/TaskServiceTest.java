@@ -27,8 +27,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
-import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.tasks.dtos.CreateTaskDto;
 import app.virtual_workspace.tasks.dtos.TaskResponseDto;
@@ -46,28 +44,19 @@ public class TaskServiceTest {
     @Mock
     private TaskMapper taskMapper;
 
-    @Mock
-    private UserAuthService userAuthService;
-
     @InjectMocks
     private TaskService taskService;
 
-    private User sampleUser;
     private Task sampleTask;
     private TaskResponseDto sampleResponseDto;
 
     @BeforeEach
     void setUp() {
-        sampleUser = User.builder()
-                .id(1L)
-                .email("user@example.com")
-                .build();
-
         sampleTask = Task.builder()
                 .id(10L)
                 .title("Initial Task")
                 .isCompleted(false)
-                .user(sampleUser)
+                .userId(1L)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -91,18 +80,16 @@ public class TaskServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Slice<Task> taskSlice = new SliceImpl<>(List.of(sampleTask), pageable, false);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskRepository.findTasksByUserId(1L, pageable)).thenReturn(taskSlice);
             when(taskMapper.toAllTasksResponseDto(sampleTask)).thenReturn(sampleResponseDto);
 
-            Slice<TaskResponseDto> result = taskService.getAllTasks(pageable);
+            Slice<TaskResponseDto> result = taskService.getAllTasks(1L, pageable);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst().getId()).isEqualTo(10L);
             assertThat(result.getContent().getFirst().getTitle()).isEqualTo("Initial Task");
 
-            verify(userAuthService, times(1)).getAuthenticatedUser();
             verify(taskRepository, times(1)).findTasksByUserId(1L, pageable);
             verify(taskMapper, times(1)).toAllTasksResponseDto(sampleTask);
         }
@@ -113,10 +100,9 @@ public class TaskServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Slice<Task> emptySlice = new SliceImpl<>(Collections.emptyList(), pageable, false);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskRepository.findTasksByUserId(1L, pageable)).thenReturn(emptySlice);
 
-            Slice<TaskResponseDto> result = taskService.getAllTasks(pageable);
+            Slice<TaskResponseDto> result = taskService.getAllTasks(1L, pageable);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).isEmpty();
@@ -126,28 +112,13 @@ public class TaskServiceTest {
         }
 
         @Test
-        @DisplayName("Should propagate exception when userAuthService fails")
-        void getAllTasks_shouldPropagateException_whenUserAuthServiceThrows() {
-            Pageable pageable = PageRequest.of(0, 10);
-            when(userAuthService.getAuthenticatedUser())
-                    .thenThrow(new ResourceNotFoundException("No authenticated user"));
-
-            assertThatThrownBy(() -> taskService.getAllTasks(pageable))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("No authenticated user");
-
-            verify(taskRepository, never()).findTasksByUserId(any(), any());
-        }
-
-        @Test
         @DisplayName("Should propagate exception when taskRepository fails downstream")
         void getAllTasks_shouldPropagateException_whenRepositoryThrows() {
             Pageable pageable = PageRequest.of(0, 10);
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskRepository.findTasksByUserId(1L, pageable))
                     .thenThrow(new RuntimeException("Database query failed"));
 
-            assertThatThrownBy(() -> taskService.getAllTasks(pageable))
+            assertThatThrownBy(() -> taskService.getAllTasks(1L, pageable))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Database query failed");
         }
@@ -170,12 +141,12 @@ public class TaskServiceTest {
                     .isCompleted(false)
                     .build();
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskMapper.toModel(request)).thenReturn(mappedTask);
+            when(taskRepository.save(mappedTask)).thenReturn(mappedTask);
+            when(taskMapper.taskResponseDto(mappedTask)).thenReturn(sampleResponseDto);
 
-            taskService.createTask(request);
+            TaskResponseDto result = taskService.createTask(1L, request);
 
-            verify(userAuthService, times(1)).getAuthenticatedUser();
             verify(taskMapper, times(1)).toModel(request);
 
             ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
@@ -183,9 +154,10 @@ public class TaskServiceTest {
 
             Task savedTask = taskCaptor.getValue();
             assertThat(savedTask).isNotNull();
-            assertThat(savedTask.getUser()).isEqualTo(sampleUser);
+            assertThat(savedTask.getUserId()).isEqualTo(1L);
             assertThat(savedTask.getTitle()).isEqualTo("New Task");
             assertThat(savedTask.isCompleted()).isFalse();
+            assertThat(result).isEqualTo(sampleResponseDto);
         }
 
         @Test
@@ -201,27 +173,16 @@ public class TaskServiceTest {
                     .isCompleted(true)
                     .build();
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskMapper.toModel(request)).thenReturn(mappedTask);
+            when(taskRepository.save(mappedTask)).thenReturn(mappedTask);
+            when(taskMapper.taskResponseDto(mappedTask)).thenReturn(sampleResponseDto);
 
-            taskService.createTask(request);
+            TaskResponseDto result = taskService.createTask(1L, request);
 
             ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
             verify(taskRepository, times(1)).save(taskCaptor.capture());
             assertThat(taskCaptor.getValue().isCompleted()).isTrue();
-        }
-
-        @Test
-        @DisplayName("Should propagate exception when userAuthService fails during creation")
-        void createTask_shouldPropagateException_whenUserAuthServiceThrows() {
-            CreateTaskDto request = CreateTaskDto.builder().title("Task").build();
-            when(userAuthService.getAuthenticatedUser())
-                    .thenThrow(new ResourceNotFoundException("No authenticated user"));
-
-            assertThatThrownBy(() -> taskService.createTask(request))
-                    .isInstanceOf(ResourceNotFoundException.class);
-
-            verify(taskRepository, never()).save(any());
+            assertThat(result).isEqualTo(sampleResponseDto);
         }
 
         @Test
@@ -230,11 +191,10 @@ public class TaskServiceTest {
             CreateTaskDto request = CreateTaskDto.builder().title("Task").build();
             Task mappedTask = new Task();
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(taskMapper.toModel(request)).thenReturn(mappedTask);
             when(taskRepository.save(mappedTask)).thenThrow(new RuntimeException("DB error"));
 
-            assertThatThrownBy(() -> taskService.createTask(request))
+            assertThatThrownBy(() -> taskService.createTask(1L, request))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("DB error");
         }
@@ -252,9 +212,9 @@ public class TaskServiceTest {
                     .isCompleted(true)
                     .build();
 
-            when(taskRepository.findById(10L)).thenReturn(Optional.of(sampleTask));
+            when(taskRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleTask));
 
-            taskService.updateTask(10L, updateDto);
+            taskService.updateTask(1L, 10L, updateDto);
 
             assertThat(sampleTask.getTitle()).isEqualTo("Updated Title");
             assertThat(sampleTask.isCompleted()).isTrue();
@@ -269,9 +229,9 @@ public class TaskServiceTest {
                     .isCompleted(null)
                     .build();
 
-            when(taskRepository.findById(10L)).thenReturn(Optional.of(sampleTask));
+            when(taskRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleTask));
 
-            taskService.updateTask(10L, updateDto);
+            taskService.updateTask(1L, 10L, updateDto);
 
             assertThat(sampleTask.getTitle()).isEqualTo("Updated Title Only");
             assertThat(sampleTask.isCompleted()).isFalse(); // remains original false
@@ -286,9 +246,9 @@ public class TaskServiceTest {
                     .isCompleted(true)
                     .build();
 
-            when(taskRepository.findById(10L)).thenReturn(Optional.of(sampleTask));
+            when(taskRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleTask));
 
-            taskService.updateTask(10L, updateDto);
+            taskService.updateTask(1L, 10L, updateDto);
 
             assertThat(sampleTask.getTitle()).isEqualTo("Initial Task"); // remains original
             assertThat(sampleTask.isCompleted()).isTrue();
@@ -303,9 +263,9 @@ public class TaskServiceTest {
                     .isCompleted(null)
                     .build();
 
-            when(taskRepository.findById(10L)).thenReturn(Optional.of(sampleTask));
+            when(taskRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleTask));
 
-            taskService.updateTask(10L, updateDto);
+            taskService.updateTask(1L, 10L, updateDto);
 
             assertThat(sampleTask.getTitle()).isEqualTo("Initial Task");
             assertThat(sampleTask.isCompleted()).isFalse();
@@ -316,11 +276,11 @@ public class TaskServiceTest {
         @DisplayName("Should throw ResourceNotFoundException when task does not exist")
         void updateTask_shouldThrowResourceNotFoundException_whenTaskNotFound() {
             UpdateTaskDto updateDto = UpdateTaskDto.builder().title("Title").build();
-            when(taskRepository.findById(999L)).thenReturn(Optional.empty());
+            when(taskRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskService.updateTask(999L, updateDto))
+            assertThatThrownBy(() -> taskService.updateTask(1L, 999L, updateDto))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Task Not Found");
+                    .hasMessage("Task With Id: 999 Not Found");
 
             verify(taskRepository, never()).save(any());
         }
@@ -332,10 +292,10 @@ public class TaskServiceTest {
             UpdateTaskDto updateDto = UpdateTaskDto.builder().title("Boundary").build();
 
             for (long id : boundaryIds) {
-                Task task = Task.builder().id(id).title("Old").build();
-                when(taskRepository.findById(id)).thenReturn(Optional.of(task));
+                Task task = Task.builder().id(id).title("Old").userId(1L).build();
+                when(taskRepository.findByIdAndUserId(id, 1L)).thenReturn(Optional.of(task));
 
-                taskService.updateTask(id, updateDto);
+                taskService.updateTask(1L, id, updateDto);
 
                 assertThat(task.getTitle()).isEqualTo("Boundary");
                 verify(taskRepository, times(1)).save(task);
@@ -346,10 +306,10 @@ public class TaskServiceTest {
         @DisplayName("Should propagate exception when taskRepository.save fails")
         void updateTask_shouldPropagateException_whenSaveThrows() {
             UpdateTaskDto updateDto = UpdateTaskDto.builder().title("Title").build();
-            when(taskRepository.findById(10L)).thenReturn(Optional.of(sampleTask));
+            when(taskRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleTask));
             when(taskRepository.save(sampleTask)).thenThrow(new RuntimeException("Save failed"));
 
-            assertThatThrownBy(() -> taskService.updateTask(10L, updateDto))
+            assertThatThrownBy(() -> taskService.updateTask(1L, 10L, updateDto))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Save failed");
         }
@@ -362,23 +322,23 @@ public class TaskServiceTest {
         @Test
         @DisplayName("Should delete task when task exists")
         void deleteTask_shouldDeleteTask_whenTaskExists() {
-            when(taskRepository.existsById(10L)).thenReturn(true);
+            when(taskRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(true);
 
-            taskService.deleteTask(10L);
+            taskService.deleteTask(1L, 10L);
 
-            verify(taskRepository, times(1)).existsById(10L);
-            verify(taskRepository, times(1)).deleteById(10L);
+            verify(taskRepository, times(1)).deleteByIdAndUserId(10L, 1L);
         }
 
         @Test
-        @DisplayName("Should not delete task when task does not exist")
-        void deleteTask_shouldNotCallDelete_whenTaskDoesNotExist() {
-            when(taskRepository.existsById(999L)).thenReturn(false);
+        @DisplayName("Should throw ResourceNotFoundException when task does not exist")
+        void deleteTask_shouldThrowResourceNotFoundException_whenTaskDoesNotExist() {
+            when(taskRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(false);
 
-            taskService.deleteTask(999L);
+            assertThatThrownBy(() -> taskService.deleteTask(1L, 999L))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Task with id: 999 not found");
 
-            verify(taskRepository, times(1)).existsById(999L);
-            verify(taskRepository, never()).deleteById(any());
+            verify(taskRepository, times(1)).deleteByIdAndUserId(999L, 1L);
         }
 
         @Test
@@ -387,38 +347,24 @@ public class TaskServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE, Long.MIN_VALUE};
 
             for (long id : boundaryIds) {
-                when(taskRepository.existsById(id)).thenReturn(true);
+                when(taskRepository.deleteByIdAndUserId(id, 1L)).thenReturn(true);
 
-                taskService.deleteTask(id);
+                taskService.deleteTask(1L, id);
 
-                verify(taskRepository, times(1)).deleteById(id);
+                verify(taskRepository, times(1)).deleteByIdAndUserId(id, 1L);
             }
         }
 
         @Test
-        @DisplayName("Should propagate exception when existsById throws")
-        void deleteTask_shouldPropagateException_whenExistsByIdThrows() {
-            when(taskRepository.existsById(10L)).thenThrow(new RuntimeException("DB error"));
+        @DisplayName("Should propagate exception when deleteByIdAndUserId throws")
+        void deleteTask_shouldPropagateException_whenDeleteByIdAndUserIdThrows() {
+            when(taskRepository.deleteByIdAndUserId(10L, 1L)).thenThrow(new RuntimeException("Delete error"));
 
-            assertThatThrownBy(() -> taskService.deleteTask(10L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("DB error");
-
-            verify(taskRepository, never()).deleteById(any());
-        }
-
-        @Test
-        @DisplayName("Should propagate exception when deleteById throws")
-        void deleteTask_shouldPropagateException_whenDeleteByIdThrows() {
-            when(taskRepository.existsById(10L)).thenReturn(true);
-            org.mockito.Mockito.doThrow(new RuntimeException("Delete error"))
-                    .when(taskRepository).deleteById(10L);
-
-            assertThatThrownBy(() -> taskService.deleteTask(10L))
+            assertThatThrownBy(() -> taskService.deleteTask(1L, 10L))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Delete error");
 
-            verify(taskRepository, times(1)).deleteById(10L);
+            verify(taskRepository, times(1)).deleteByIdAndUserId(10L, 1L);
         }
     }
 }

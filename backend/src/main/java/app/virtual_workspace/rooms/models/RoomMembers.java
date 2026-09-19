@@ -32,40 +32,42 @@ import lombok.Setter;
 @Getter
 @Builder
 @Entity
-@Table(
-        name = "room_members",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "room_id"})
-        },
-        indexes = {
+@Table(name = "room_members", uniqueConstraints = {
+                @UniqueConstraint(columnNames = { "user_id", "room_id" })
+}, indexes = {
                 @Index(name = "idx_room_members_room_id", columnList = "room_id")
-        }
-)
+})
 public class RoomMembers {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "user_id")
+        private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private Room room;
+        @Column(name = "user_id", nullable = false)
+        private Long userId;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status = Status.OFFLINE;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "room_id")
+        private Room room;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        @Column(name = "room_id", nullable = false)
+        private Long roomId;
 
-    @Column(name = "last_active_at", nullable = false)
-    @UpdateTimestamp
-    private LocalDateTime lastActiveAt;
+        @Builder.Default
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private Status status = Status.OFFLINE;
+
+        @Column(name = "created_at", nullable = false, updatable = false)
+        @CreationTimestamp
+        private LocalDateTime createdAt;
+
+        @Column(name = "last_active_at", nullable = false)
+        @UpdateTimestamp
+        private LocalDateTime lastActiveAt;
 
 }

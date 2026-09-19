@@ -7,8 +7,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.room.AllRoomResponseDto;
@@ -27,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final UserAuthService userAuthService;
     private final RoomMapper roomMapper;
 
     public Slice<AllRoomResponseDto> getAllRooms(Pageable pageable) {
@@ -38,28 +35,26 @@ public class RoomService {
 
     @Transactional
     public CreateRoomResponseDto createRoom(
+            Long userId,
             CreateRoomRequestDto createRoomRequestDto) {
-        User user = userAuthService.getAuthenticatedUser();
 
-        if (roomRepository.existsByUserId(user.getId())) {
+        if (roomRepository.existsByUserId(userId)) {
             throw new ResourceAlreadyExistsException("User already has room");
         }
 
         Room room = roomMapper.createRoomRequestDtoToModel(createRoomRequestDto);
 
-        room.setUser(user);
+        room.setUserId(userId);
         roomRepository.save(room);
 
         return roomMapper.createRoomRequestToResponse(room);
     }
 
-    public RoomDataResponseDto getRoomData(Long id) {
+    public RoomDataResponseDto getRoomData(Long userId, Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + id));
 
-        User user = userAuthService.getAuthenticatedUser();
-
-        if (room.getVisibility() != Visibility.PUBLIC && !room.getUser().getId().equals(user.getId())) {
+        if (room.getVisibility() != Visibility.PUBLIC && !room.getUser().getId().equals(userId)) {
             throw new AccessDeniedException("Access denied for this room");
         }
 
@@ -68,9 +63,11 @@ public class RoomService {
 
     @Transactional
     public RoomDataResponseDto updateRoom(
+            Long userId,
             Long roomId,
             UpdateRoomRequestDto updateRoomRequestDto) {
-        Room room = roomRepository.getRoomById(roomId);
+        Room room = roomRepository.findByIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room with id: " + roomId + " not found"));
 
         if (updateRoomRequestDto.getTitle() != null) {
             room.setTitle(updateRoomRequestDto.getTitle());
@@ -90,11 +87,11 @@ public class RoomService {
 
     @Transactional
     @CacheEvict(value = "room_members", key = "#roomId")
-    public void deleteRoom(Long roomId) {
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room Not Found"));
-
-        roomRepository.delete(room);
+    public void deleteRoom(Long userId, Long roomId) {
+        Boolean deleted = roomRepository.deleteByIdAndUserId(roomId, userId);
+        if (!deleted) {
+            throw new ResourceNotFoundException("Room with id: " + roomId + " not found");
+        }
     }
 
 }

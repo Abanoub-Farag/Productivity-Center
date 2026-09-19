@@ -8,7 +8,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto;
@@ -29,11 +28,9 @@ public class RoomMembersService {
 
     @Transactional
     @CacheEvict(value = "room_members", key = "#roomId")
-    public void joinRoom(Long roomId) {
+    public void joinRoom(Long userId, Long roomId) {
 
-        User user = userAuthService.getAuthenticatedUser();
-
-        if (roomMembersRepository.existsByUserIdAndRoomId(user.getId(), roomId)) {
+        if (roomMembersRepository.existsByUserIdAndRoomId(userId, roomId)) {
             return;
         }
 
@@ -41,8 +38,8 @@ public class RoomMembersService {
                 .orElseThrow(() -> new ResourceNotFoundException("Room Not Found"));
 
         RoomMembers roomMembers = RoomMembers.builder()
-                .user(user)
-                .room(room)
+                .userId(userId)
+                .roomId(roomId)
                 .status(Status.ONLINE)
                 .build();
 
@@ -50,10 +47,8 @@ public class RoomMembersService {
 
     }
 
-    public void heartBeat(Long roomId) {
-
-        User user = userAuthService.getAuthenticatedUser();
-        roomMembersRepository.updateLastActiveAt(user.getId(), roomId, LocalDateTime.now());
+    public void heartBeat(Long userId, Long roomId) {
+        roomMembersRepository.updateLastActiveAt(userId, roomId, LocalDateTime.now());
 
     }
 

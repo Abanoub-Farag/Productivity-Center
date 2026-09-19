@@ -1,45 +1,57 @@
 package app.virtual_workspace.rooms.models;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import app.virtual_workspace.accounts.models.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@Table(
-        name = "favorite_rooms",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"user_id", "room_id"}
-        ),
-        indexes = {
-                @Index(name = "idx_fav_room_id", columnList = "room_id")
-        }
-)
+@Table(name = "favorite_rooms", uniqueConstraints = @UniqueConstraint(columnNames = { "user_id",
+                "room_id" }), indexes = {
+                                @Index(name = "idx_fav_room_id", columnList = "room_id")
+                })
 public class FavoriteRoom {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "user_id")
+        private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private Room room;
+        @Column(name = "user_id", nullable = false)
+        private Long userId;
 
-    @CreationTimestamp
-    @Column(name = "added_at")
-    private LocalDateTime addedAt;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "room_id")
+        private Room room;
+
+        @Column(name = "room_id", nullable = false)
+        private Long roomId;
+
+        @CreationTimestamp
+        @Column(name = "added_at")
+        private LocalDateTime addedAt;
 
 }

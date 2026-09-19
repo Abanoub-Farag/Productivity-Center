@@ -1,5 +1,7 @@
 package app.virtual_workspace.rooms.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +20,9 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     Slice<Room> findByVisibilityNot(Visibility visibility, Pageable pageable);
 
     Boolean existsByUserId(Long userId);
+
+    Optional<Room> findByIdAndUserId(Long id, Long userId);
+
+    Boolean deleteByIdAndUserId(Long id, Long userId);
 
 }
