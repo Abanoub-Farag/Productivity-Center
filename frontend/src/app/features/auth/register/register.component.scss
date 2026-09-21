@@ -5,6 +5,8 @@
 // correct value, so there is zero flash on route transitions.
 // ─────────────────────────────────────────────────────────────────────────────
 
+:host { display: block; }
+
 // ── Reset (component-scoped) ──────────────────────────────────────────────────
 *,
 *::before,

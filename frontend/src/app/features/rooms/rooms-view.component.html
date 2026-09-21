@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="rooms-grid" *ngIf="!isLoading() && !error()">
+      <div class="rooms-grid" *ngIf="!facade.isLoading() && !facade.error()">
         <app-room-card 
           *ngFor="let room of filteredRooms()" 
           [room]="room"
@@ -32,33 +32,33 @@
         </app-room-card>
       </div>
 
-      <div class="pagination-controls" *ngIf="activeTab() === 'Favorites' && !isLoading() && !error() && filteredRooms().length > 0">
+      <div class="pagination-controls" *ngIf="activeTab() === 'Favorites' && !facade.isLoading() && !facade.error() && filteredRooms().length > 0">
         <button 
           type="button"
           class="page-btn" 
-          [disabled]="favIsFirst()" 
-          (click)="fetchFavorites(favPage() - 1)">
+          [disabled]="facade.favIsFirst()" 
+          (click)="facade.loadFavorites(facade.favPage() - 1)">
           Previous
         </button>
-        <span class="page-info">Page {{ favPage() + 1 }} of {{ favTotalPages() }}</span>
+        <span class="page-info">Page {{ facade.favPage() + 1 }} of {{ facade.favTotalPages() }}</span>
         <button 
           type="button"
           class="page-btn" 
-          [disabled]="favIsLast()" 
-          (click)="fetchFavorites(favPage() + 1)">
+          [disabled]="facade.favIsLast()" 
+          (click)="facade.loadFavorites(facade.favPage() + 1)">
           Next
         </button>
       </div>
       
-      <div class="empty-state" *ngIf="isLoading()">
+      <div class="empty-state" *ngIf="facade.isLoading()">
         <p>Loading rooms...</p>
       </div>
 
-      <div class="empty-state error" *ngIf="error()">
-        <p>{{ error() }}</p>
+      <div class="empty-state error" *ngIf="facade.error()">
+        <p>{{ facade.error() }}</p>
       </div>
 
-      <div class="empty-state" *ngIf="!isLoading() && !error() && filteredRooms().length === 0">
+      <div class="empty-state" *ngIf="!facade.isLoading() && !facade.error() && filteredRooms().length === 0">
         <p *ngIf="activeTab() === 'Favorites'">No favorite rooms added yet. Click the heart icon on any room to add it to your favorites!</p>
         <p *ngIf="activeTab() !== 'Favorites'">No rooms match your search criteria.</p>
       </div>

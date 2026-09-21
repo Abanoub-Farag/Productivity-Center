@@ -12,7 +12,7 @@ import {
   Check,
   X,
 } from 'lucide-angular';
-import { TaskData } from '../../services/task.service';
+import { TaskData } from '../../models/rooms.models';
 
 @Component({
   selector: 'app-room-task-panel',

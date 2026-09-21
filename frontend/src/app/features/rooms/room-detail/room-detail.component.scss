@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 $bg-root: var(--room-bg-root);
 $bg-card: var(--room-bg-card);
 $bg-elevated: var(--room-bg-elevated);
@@ -34,7 +38,9 @@ $text-dim: var(--room-text-dim);
   gap: 24px;
   padding: 32px 36px;
   align-items: start;
+  height: calc(100vh - 64px); // account for nav bar height
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1024px) {

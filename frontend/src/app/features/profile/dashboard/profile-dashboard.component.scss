@@ -1,5 +1,8 @@
 @use "sass:color";
 
+// ─── Host Containment ────────────────────────────────────────────────────────
+:host { display: block; }
+
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 $bg-main:        #0d0e1a;
 $bg-card:        #141624;
@@ -121,6 +124,7 @@ $text-secondary: #9ca3af;
   flex-direction: column;
   align-items: center;
   margin-bottom: 3rem;
+  padding-top: 1rem; // prevent avatar ring clipping at scroll-area top
 
   .avatar-ring {
     position: relative;
@@ -227,6 +231,7 @@ $text-secondary: #9ca3af;
     padding: 1rem 1.5rem;
     border-top: 1px solid $border-color;
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 1rem;
   }
@@ -344,6 +349,8 @@ $text-secondary: #9ca3af;
   color: $error-color;
   margin-top: 0.1rem;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 // ─── Gender Radio Group ───────────────────────────────────────────────────────

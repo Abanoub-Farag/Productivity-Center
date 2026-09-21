@@ -4,6 +4,8 @@
 // All colours come from html / html.dark in styles.css — zero flash.
 // ─────────────────────────────────────────────────────────────────────────────
 
+:host { display: block; }
+
 *,
 *::before,
 *::after {

@@ -1,0 +1,211 @@
+import { Injectable, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { RoomsDataService } from './rooms-data.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { Room, FavoriteRoomItem, RoomData } from '../models/rooms.models';
+
+@Injectable()
+export class RoomsFacade {
+  private readonly data = inject(RoomsDataService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // ── Readonly state ─────────────────────────────────────────────────────────
+
+  readonly rooms = signal<Room[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly error = signal<string | null>(null);
+
+  readonly favoriteRoomIds = signal<Set<string>>(new Set());
+  readonly favPage = signal<number>(0);
+  readonly favTotalPages = signal<number>(1);
+  readonly favIsFirst = signal<boolean>(true);
+  readonly favIsLast = signal<boolean>(true);
+
+  /** Delegates to RoomsDataService — single source of truth for the user's active room. */
+  readonly userRoomId = this.data.userRoomId;
+
+  // ── Actions ────────────────────────────────────────────────────────────────
+
+  loadRooms(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.data.getRooms(0, 50)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const favSet = this.favoriteRoomIds();
+          const fetchedRooms = response.data?.content ?? [];
+          const mapped: Room[] = fetchedRooms
+            .filter((r: RoomData) => r.id != null)
+            .map((r: RoomData) => ({
+              id: r.id.toString(),
+              title: r.title ?? 'Untitled Room',
+              description: r.description ?? 'No description provided.',
+              tags: r.tags ?? [],
+              actionType: (r.actionType as 'join' | 'view') ?? 'view',
+              visibility: r.visibility ?? 'PUBLIC',
+              isFavorite: favSet.has(r.id.toString()),
+            }));
+          this.rooms.set(mapped);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load rooms.');
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  loadFavoriteSet(): void {
+    this.data.getFavorites(0, 100)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const favContent: FavoriteRoomItem[] = res.data?.content ?? [];
+          const set = new Set(favContent.map((f) => f.roomId.toString()));
+          this.favoriteRoomIds.set(set);
+          this.rooms.update((list) =>
+            list.map((r) => ({ ...r, isFavorite: set.has(r.id) })),
+          );
+        },
+        error: (err: HttpErrorResponse) =>
+          console.error('Error preloading favorites:', err),
+      });
+  }
+
+  loadFavorites(page = 0): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    this.favPage.set(page);
+
+    this.data.getFavorites(page, 20)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const d = response.data;
+          const items: FavoriteRoomItem[] = d?.content ?? [];
+          this.favIsFirst.set(d?.first ?? true);
+          this.favIsLast.set(d?.last ?? true);
+          this.favTotalPages.set(d?.totalPages ?? 1);
+
+          const mapped: Room[] = items.map((f) => ({
+            id: f.roomId.toString(),
+            title: f.title ?? 'Untitled Room',
+            description: f.description ?? 'No description provided.',
+            tags: ['favorite'],
+            actionType: 'join',
+            visibility: f.visibility ?? 'PUBLIC',
+            isFavorite: true,
+            addedAt: f.addedAt,
+          }));
+          this.rooms.set(mapped);
+          this.isLoading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(this.extractErrorMessage(err, 'Failed to load favorite rooms.'));
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  joinRoom(roomId: string): void {
+    const numericId = parseInt(roomId, 10);
+    if (isNaN(numericId) || numericId <= 0) {
+      this.router.navigate(['/rooms', roomId]);
+      return;
+    }
+    this.data.joinRoom(numericId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/rooms', roomId]),
+        error: () => this.router.navigate(['/rooms', roomId]),
+      });
+  }
+
+  toggleFavorite(room: Room): void {
+    const isCurrentlyFav = !!room.isFavorite;
+    const targetState = !isCurrentlyFav;
+
+    this.rooms.update((list) =>
+      list.map((r) =>
+        r.id === room.id ? { ...r, isFavorite: targetState, isPendingFavorite: true } : r,
+      ),
+    );
+
+    const request$ = targetState
+      ? this.data.addToFavorites(room.id)
+      : this.data.removeFromFavorites(room.id);
+
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.handleFavoriteSuccess(room.id, targetState),
+      error: (err: HttpErrorResponse) =>
+        this.handleFavoriteError(room.id, isCurrentlyFav, err),
+    });
+  }
+
+  /** Called after a successful room creation to update auth user state + navigate. */
+  handleRoomCreated(newRoomId: number | undefined): void {
+    if (newRoomId) {
+      this.authService.addRoomId(newRoomId);
+      this.router.navigate(['/rooms', newRoomId]);
+    } else {
+      this.router.navigate(['/rooms']);
+    }
+  }
+
+  // ── Private ────────────────────────────────────────────────────────────────
+
+  private handleFavoriteSuccess(roomId: string, targetState: boolean): void {
+    const activeTab = this._activeTab;
+    this.rooms.update((list) => {
+      if (!targetState && activeTab === 'Favorites') {
+        return list.filter((r) => r.id !== roomId);
+      }
+      return list.map((r) =>
+        r.id === roomId ? { ...r, isFavorite: targetState, isPendingFavorite: false } : r,
+      );
+    });
+    this.favoriteRoomIds.update((set) => {
+      const next = new Set(set);
+      if (targetState) next.add(roomId);
+      else next.delete(roomId);
+      return next;
+    });
+  }
+
+  private handleFavoriteError(
+    roomId: string,
+    isCurrentlyFav: boolean,
+    err: HttpErrorResponse,
+  ): void {
+    console.error('Failed to toggle favorite:', err);
+    this.rooms.update((list) =>
+      list.map((r) =>
+        r.id === roomId ? { ...r, isFavorite: isCurrentlyFav, isPendingFavorite: false } : r,
+      ),
+    );
+    alert(this.extractErrorMessage(err, 'Could not update favorite status.'));
+  }
+
+  private extractErrorMessage(err: HttpErrorResponse, defaultMsg: string): string {
+    if (err?.status === 0) return 'Network Error: Unable to connect to server.';
+    const errs = err?.error?.errors;
+    if (errs && typeof errs === 'object' && Object.keys(errs).length > 0) {
+      return Object.entries(errs as Record<string, string>)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('; ');
+    }
+    return (err?.error?.message as string | undefined) ?? defaultMsg;
+  }
+
+  /**
+   * Allows the component to inform the facade which tab is active so that
+   * `handleFavoriteSuccess` can decide whether to remove a de-favorited card.
+   */
+  _activeTab: string = 'All Rooms';
+}

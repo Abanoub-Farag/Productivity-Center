@@ -11,13 +11,13 @@
       </div>
 
       <!-- Loading State -->
-      <div class="state-container" *ngIf="isLoading()">
+      <div class="state-container" *ngIf="facade.isLoading()">
         <div class="loading-spinner"></div>
         <p>Loading profile…</p>
       </div>
 
       <!-- Error State -->
-      <div class="state-container error" *ngIf="pageError() as e">
+      <div class="state-container error" *ngIf="facade.pageError() as e">
         <div class="error-icon" aria-hidden="true">⚠</div>
         <h2 class="error-title">{{ e.title }}</h2>
         <p class="error-hint">{{ e.hint }}</p>
@@ -25,7 +25,7 @@
       </div>
 
       <!-- Profile Content -->
-      <ng-container *ngIf="!isLoading() && !pageError() && profile() as p">
+      <ng-container *ngIf="!facade.isLoading() && !facade.pageError() && facade.profile() as p">
 
         <!-- Hero Header -->
         <div class="hero-header">
@@ -83,8 +83,6 @@
                 </div>
               </div>
 
-              <!-- Display Name / Professional Headline Removed -->
-
               <!-- Bio -->
               <div class="form-group">
                 <label for="bio">Bio</label>
@@ -139,15 +137,13 @@
                 type="submit"
                 id="saveProfileBtn"
                 class="btn btn-primary"
-                [disabled]="isSavingUser() || userInfoForm.invalid || !isFormDirty"
+                [disabled]="facade.isSaving() || userInfoForm.invalid || !isFormDirty"
               >
-                <span *ngIf="isSavingUser()" class="spinner" aria-hidden="true"></span>
-                {{ isSavingUser() ? 'Saving…' : 'Save Changes' }}
+                <span *ngIf="facade.isSaving()" class="spinner" aria-hidden="true"></span>
+                {{ facade.isSaving() ? 'Saving…' : 'Save Changes' }}
               </button>
             </div>
           </form>
-
-          <!-- Social Links Card Removed -->
 
         </div><!-- /cards-container -->
       </ng-container>

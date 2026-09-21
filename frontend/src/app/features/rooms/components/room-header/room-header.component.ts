@@ -10,7 +10,7 @@ import {
   Trash2,
   Lock,
 } from 'lucide-angular';
-import { RoomData } from '../../services/room.service';
+import { RoomData } from '../../models/rooms.models';
 
 @Component({
   selector: 'app-room-header',

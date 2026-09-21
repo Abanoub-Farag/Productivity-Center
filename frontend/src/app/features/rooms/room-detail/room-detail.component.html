@@ -7,11 +7,11 @@
 
     <!-- ── Top Header Bar ───────────────────────────────────────────────── -->
     <app-room-header
-      [room]="room()"
-      [heartbeatStatus]="heartbeatStatus()"
-      [isFavorite]="isFavorite()"
-      [isPendingFavorite]="isPendingFavorite()"
-      [isOwner]="isOwner()"
+      [room]="roomState.room()"
+      [heartbeatStatus]="roomState.heartbeatStatus()"
+      [isFavorite]="roomState.isFavorite()"
+      [isPendingFavorite]="roomState.isPendingFavorite()"
+      [isOwner]="roomState.isOwner()"
       (toggleFavorite)="toggleFavorite()"
       (editRoom)="openEditRoomModal()"
       (deleteRoom)="openDeleteRoomModal()"
@@ -22,8 +22,8 @@
 
       <!-- ═══ LEFT COLUMN: Online Participants ═══════════════════════════════ -->
       <section class="split-panel participants-panel" aria-label="Room Members">
-        @if (roomId()) {
-          <app-room-members-list [roomId]="roomId()!"></app-room-members-list>
+        @if (roomState.roomId()) {
+          <app-room-members-list [roomId]="roomState.roomId()!"></app-room-members-list>
         }
       </section>
 
@@ -32,24 +32,24 @@
 
       <!-- ═══ RIGHT COLUMN: Session Tasks ════════════════════════════════ -->
       <app-room-task-panel
-        [tasks]="tasks()"
-        [isTasksLoading]="isTasksLoading()"
-        [tasksError]="tasksError()"
-        [taskUpdateError]="taskUpdateError()"
-        [updatingTaskId]="updatingTaskId()"
-        [newTaskText]="newTaskText()"
-        [editingTaskId]="editingTaskId()"
-        [editingTaskTitle]="editingTaskTitle()"
-        (onAddTask)="addTask()"
+        [tasks]="roomState.tasks()"
+        [isTasksLoading]="roomState.isTasksLoading()"
+        [tasksError]="roomState.tasksError()"
+        [taskUpdateError]="roomState.taskUpdateError()"
+        [updatingTaskId]="roomState.updatingTaskId()"
+        [newTaskText]="roomState.newTaskText()"
+        [editingTaskId]="roomState.editingTaskId()"
+        [editingTaskTitle]="roomState.editingTaskTitle()"
+        (onAddTask)="onAddTask()"
         (onNewTaskInput)="onNewTaskInput($event)"
         (onNewTaskKeydown)="onNewTaskKeydown($event)"
-        (onFetchTasks)="fetchTasks()"
-        (onToggleTask)="toggleTask($event)"
-        (onStartEditTask)="startEditTask($event)"
-        (onDeleteTask)="deleteTask($event)"
+        (onFetchTasks)="roomState.fetchTasks()"
+        (onToggleTask)="onToggleTask($event)"
+        (onStartEditTask)="onStartEditTask($event)"
+        (onDeleteTask)="onDeleteTask($event)"
         (onEditTaskInput)="onEditTaskInput($event)"
-        (onSaveTaskTitle)="saveTaskTitle($event)"
-        (onCancelEditTask)="cancelEditTask()"
+        (onSaveTaskTitle)="onSaveTaskTitle($event)"
+        (onCancelEditTask)="onCancelEditTask()"
       ></app-room-task-panel>
 
     </div><!-- /session-body -->
@@ -57,7 +57,7 @@
   </div><!-- /session-main -->
 
   <!-- ═══ Edit Room Modal ═════════════════════════════════════════════════ -->
-  <div class="modal-overlay" *ngIf="isEditRoomModalOpen()" (click)="closeEditRoomModal()">
+  <div class="modal-overlay" *ngIf="roomState.isEditRoomModalOpen()" (click)="closeEditRoomModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Edit Room Details</h2>
@@ -72,7 +72,7 @@
             id="edit-room-title"
             type="text"
             class="form-control"
-            [value]="editRoomTitle()"
+            [value]="roomState.editRoomTitle()"
             (input)="onEditRoomTitleInput($event)"
             placeholder="Enter room title"
             required
@@ -84,7 +84,7 @@
           <textarea
             id="edit-room-description"
             class="form-control textarea"
-            [value]="editRoomDescription()"
+            [value]="roomState.editRoomDescription()"
             (input)="onEditRoomDescriptionInput($event)"
             placeholder="Enter room description"
             rows="3"
@@ -95,7 +95,7 @@
           <select 
             id="edit-room-visibility"
             class="form-control"
-            [ngModel]="editRoomVisibility()"
+            [ngModel]="roomState.editRoomVisibility()"
             (ngModelChange)="roomState.setEditRoomVisibility($event)"
             name="visibility"
           >
@@ -103,15 +103,15 @@
             <option value="PRIVATE">Private</option>
           </select>
         </div>
-        <div class="modal-error" *ngIf="roomUpdateError()">
-          <p>{{ roomUpdateError() }}</p>
+        <div class="modal-error" *ngIf="roomState.roomUpdateError()">
+          <p>{{ roomState.roomUpdateError() }}</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeEditRoomModal()" [disabled]="isUpdatingRoom()">
+          <button type="button" class="btn btn-secondary" (click)="closeEditRoomModal()" [disabled]="roomState.isUpdatingRoom()">
             Cancel
           </button>
-          <button type="submit" class="btn btn-primary" [disabled]="isUpdatingRoom()">
-            {{ isUpdatingRoom() ? 'Saving...' : 'Save Changes' }}
+          <button type="submit" class="btn btn-primary" [disabled]="roomState.isUpdatingRoom()">
+            {{ roomState.isUpdatingRoom() ? 'Saving...' : 'Save Changes' }}
           </button>
         </div>
       </form>
@@ -119,7 +119,7 @@
   </div>
 
   <!-- ═══ Delete Room Confirmation Modal ══════════════════════════════════ -->
-  <div class="modal-overlay" *ngIf="isDeleteRoomModalOpen()" (click)="closeDeleteRoomModal()">
+  <div class="modal-overlay" *ngIf="roomState.isDeleteRoomModalOpen()" (click)="closeDeleteRoomModal()">
     <div class="modal-card modal-card--danger" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Delete Room</h2>
@@ -128,17 +128,17 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to delete <strong>"{{ room()?.title }}"</strong>? This action cannot be undone.</p>
-        <div class="modal-error" *ngIf="roomDeleteError()">
-          <p>{{ roomDeleteError() }}</p>
+        <p>Are you sure you want to delete <strong>"{{ roomState.room()?.title }}"</strong>? This action cannot be undone.</p>
+        <div class="modal-error" *ngIf="roomState.roomDeleteError()">
+          <p>{{ roomState.roomDeleteError() }}</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeDeleteRoomModal()" [disabled]="isDeletingRoom()">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteRoomModal()" [disabled]="roomState.isDeletingRoom()">
           Cancel
         </button>
-        <button type="button" class="btn btn-danger" (click)="confirmDeleteRoom()" [disabled]="isDeletingRoom()">
-          {{ isDeletingRoom() ? 'Deleting...' : 'Delete Room' }}
+        <button type="button" class="btn btn-danger" (click)="confirmDeleteRoom()" [disabled]="roomState.isDeletingRoom()">
+          {{ roomState.isDeletingRoom() ? 'Deleting...' : 'Delete Room' }}
         </button>
       </div>
     </div>

@@ -1,10 +1,22 @@
 @use "sass:color";
-$bg-card: #141624;
-$bg-card-hover: #1b1e32;
-$border-color: #21253b;
-$primary-accent: #8a3ffc;
-$text-primary: #ffffff;
-$text-secondary: #9ca3af;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+// CSS custom property tokens (used for most styling, respects the design token system)
+$bg-card: var(--room-bg-card, #141624);
+$bg-card-hover: var(--room-bg-elevated, #1b1e32);
+$border-color: var(--room-border, #21253b);
+$primary-accent: var(--room-accent, #8a3ffc);
+$text-primary: var(--room-text-primary, #ffffff);
+$text-secondary: var(--room-text-dim, #9ca3af);
+
+// Raw hex values required for SCSS compile-time functions (color.scale, rgba)
+$_accent-hex: #8a3ffc;
+$_border-hex: #21253b;
+
 $status-active: #10b981;
 $status-idle: #6b7280;
 
@@ -202,9 +214,9 @@ $status-idle: #6b7280;
   &--primary {
     background-color: $primary-accent;
     color: $text-primary;
-    
+
     &:hover {
-      background-color: color.scale($primary-accent, $lightness: -10%);
+      background-color: color.scale($_accent-hex, $lightness: -10%);
     }
   }
 
@@ -214,8 +226,8 @@ $status-idle: #6b7280;
     border: 1px solid $border-color;
 
     &:hover {
-      background-color: rgba($text-primary, 0.05);
-      border-color: color.scale($border-color, $lightness: 10%);
+      background-color: rgba(255, 255, 255, 0.05);
+      border-color: color.scale($_border-hex, $lightness: 10%);
     }
   }
 }
