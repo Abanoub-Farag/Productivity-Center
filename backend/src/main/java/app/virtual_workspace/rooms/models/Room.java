@@ -64,7 +64,7 @@ public class Room {
         @JoinColumn(name = "user_id")
         private User user;
 
-        @Column(name = "user_id", nullable = false)
+        @Column(name = "user_id", insertable = false, updatable = false)
         private Long userId;
 
         @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
