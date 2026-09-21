@@ -1,30 +1,68 @@
-# Virtual Workspace 🚀
+# Virtual Workspace (Productivity Center)
 
-Welcome to **Virtual Workspace** – the modern, centralized hub designed for seamless collaboration and productivity. 
+A full-stack monorepo application for virtual study and work spaces featuring heartbeat-based presence tracking, customizable rooms, task management, and session timers.
 
-## 🌟 The Vision
+## Application URLs
 
-In a world where digital collaboration is essential, **Virtual Workspace** bridges the gap by providing a cohesive, real-time environment. It is a virtual space where your presence matters, your tasks are organized, and your favorite spaces are just a click away.
+- Frontend Application: `http://localhost:4200`
+- Backend API Base: `http://localhost:8080/api/v1`
+- Swagger UI Documentation: `http://localhost:8080/swagger-ui.html`
+- OpenAPI Specification: `http://localhost:8080/v3/api-docs`
+- Remote Dev API Tunnel: `https://vocalist-virtual-luckiness.ngrok-free.dev`
 
-## 🎯 Target Audience
+## Architecture and Core Features
 
-- **Students & Study Groups**: An ideal environment for students who want to study alongside peers in real-time. Join dedicated study rooms to share resources, keep track of assignments with the task manager, and foster a collaborative learning atmosphere.
-- **Remote Workers & Freelancers**: Built for professionals seeking motivation and productivity. Work alongside others in virtual spaces to simulate the energy of a bustling office, helping to maintain focus and overcome the isolation of remote work.
-- **Productivity Enthusiasts**: Anyone looking for a structured, distraction-free digital zone to organize their day, complete tasks, and track their progress alongside like-minded individuals.
+- Backend: Java 21, Spring Boot 4.0.6, Spring Security with stateless JWT authentication, PostgreSQL, Redis distributed cache, Bucket4j rate limiting, Flyway database migrations, MapStruct compile-time DTO mappers.
+- Frontend: Angular 22 with standalone components, SSR (Server-Side Rendering) and client hydration, reactive state facades, Lucide icons, custom SCSS/CSS design tokens (no external CSS frameworks).
+- Authentication and Security: Stateless JWT token issuance and validation, refresh token rotation with database revocation, BCrypt password hashing, and per-IP rate limiting on authentication routes.
+- User Profiles: Automatic profile initialization via Spring domain events upon registration, profile fetching, and profile metadata updates.
+- Virtual Rooms: Public and private room creation, slice-based pagination, room metadata updates, room deletion, and personal favorite room bookmarking.
+- Heartbeat Presence System: Client HTTP heartbeat signaling with a background scheduler disconnecting inactive participants after 30 seconds of inactivity, backed by Redis caching.
+- Focus and Task Tools: Integrated room timer/stopwatch and user-scoped task management CRUD.
 
-## ✨ Key Features
+## Monorepo File Structure
 
-- **Personalized Profiles**: Set up your digital identity.
-- **Virtual Rooms**: Create or join dynamic rooms. Mark your most-visited rooms as favorites for quick access.
-- **Real-Time Presence**: See who is currently active in a room with a robust heartbeat and presence system.
-- **Task Management**: Keep track of what needs to be done, directly tied to your workflow.
-- **Beautiful, Vibe-Coded UI**: An interface that doesn't just work—it feels *good* to use.
+```
+Productivity-Center/
+├── backend/                   # Spring Boot modular monolith backend
+│   ├── src/main/java/app/virtual_workspace/
+│   │   ├── accounts/          # Authentication, user entities, and profile domain
+│   │   ├── config/            # Redis cache and Jackson JSON configurations
+│   │   ├── exceptions/        # Centralized REST exception handler and error responses
+│   │   ├── rooms/             # Room lifecycle, favorites, and room membership domain
+│   │   ├── scheduling/        # Background scheduled presence eviction
+│   │   ├── security/          # JWT filter, rate limiting filter, and security rules
+│   │   ├── shared/            # Common API response structures
+│   │   └── tasks/             # Task management domain
+│   ├── src/main/resources/    # Application properties and Flyway SQL migrations
+│   ├── Dockerfile             # Multi-stage container build for backend
+│   ├── pom.xml                # Maven dependencies and build configuration
+│   └── README.md              # Backend-specific architecture and API documentation
+├── frontend/                  # Angular SSR web application
+│   ├── src/app/
+│   │   ├── core/              # Global interceptors, guards, toast/auth services, models
+│   │   └── features/          # Domain feature components: auth, profile, rooms, not-found
+│   ├── src/environments/      # Environment-specific API configuration
+│   ├── dev-proxy.conf.json    # Proxy config for remote ngrok tunnel
+│   ├── local-proxy.conf.json  # Proxy config for localhost backend
+│   ├── proxy.conf.json        # Proxy config for Docker Compose backend service
+│   ├── Dockerfile             # Container build for frontend client
+│   ├── package.json           # Frontend dependencies and npm scripts
+│   └── README.md              # Frontend-specific architecture and route documentation
+├── docker-compose-dev.yml     # Multi-container local environment (db, redis, backend, frontend)
+└── README.md                  # Project overview documentation
+```
 
-## 📂 Project Structure & Architecture Overview
+## Subproject Documentation
 
-This project is structured as a full-stack application, split into two main domains. The architecture relies on stateless authentication via JWTs, ensuring horizontal scalability. 
+- Backend details, configurations, and API endpoints: [backend/README.md](backend/README.md)
+- Frontend details, routing, and component architecture: [frontend/README.md](frontend/README.md)
 
-- **[`/backend`](./backend)**: The powerhouse. An enterprise-grade, highly scalable API built with **Java 21, Spring Boot 3, and PostgreSQL**. It handles secure authentication, real-time presence caching via **Redis**, and API rate limiting using **Bucket4j**. 
-  👉 [Read the Backend Documentation](./backend/README.md)
-- **[`/frontend`](./frontend)**: The face of the application. A stunning, **Server-Side Rendered (SSR) Angular 22** web application focused on delivering a premium, "vibe-coded" user experience with modern CSS and fluid animations. 
-  👉 [Read the Frontend Documentation](./frontend/README.md)
+## Multi-Container Setup
+
+Launch the stack using Docker Compose:
+
+```bash
+docker compose -f docker-compose-dev.yml up --build
+```
+

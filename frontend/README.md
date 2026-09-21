@@ -1,78 +1,116 @@
-# Virtual Workspace - Frontend 🎨✨
+# Virtual Workspace - Frontend Application
 
-Welcome to the visual heartbeat of the Virtual Workspace. This frontend isn't just built; it's **vibe-coded**. 
+Angular 22 web application featuring Server-Side Rendering (SSR), standalone components, reactive signals, custom SCSS/CSS design tokens, and HTTP-based heartbeat presence tracking.
 
-👉 **Looking for the backend?** Check out the [Backend Documentation](../backend/README.md)
+## Application and Proxy URLs
 
-We aimed to create an interface that feels alive, modern, and incredibly satisfying to use. It leverages cutting-edge web technologies to deliver a premium user experience while maintaining a robust, scalable architecture beneath the surface.
+- Development Server: `http://localhost:4200`
+- Production SSR Server: `http://localhost:4000` (served via `node dist/frontend/server/server.mjs`)
+- Local Development Proxy Target: `http://localhost:8080` (`local-proxy.conf.json`)
+- Container Environment Proxy Target: `http://backend:8080` (`proxy.conf.json`)
+- Remote Development Tunnel Target: `https://vocalist-virtual-luckiness.ngrok-free.dev` (`dev-proxy.conf.json`)
 
-## 🚀 Tech Stack & Technical Deep Dive
+## Complete Route Table
 
-- **Framework**: Angular 22
-- **Performance**: Server-Side Rendering (SSR) & Hydration
-- **Iconography**: Lucide Angular for crisp, consistent, and highly customizable vector icons.
-- **Styling**: Modern, native CSS utilizing variables, grid/flexbox layouts, and fluid typography.
-- **Build Tool**: Angular CLI with esbuild for blazing-fast builds.
+| Path | Guard | Page Title | Description |
+| --- | --- | --- | --- |
+| `/register` | `guestGuard` | Sign Up – Pcenter | Registration form for new user accounts |
+| `/login` | `guestGuard` | Log In – Pcenter | Login form with JWT token storage |
+| `/rooms` | `authGuard` | Rooms – Pcenter | Room gallery with search and "All" / "Favorites" filter tabs |
+| `/rooms/create` | `authGuard` | Create Room – Pcenter | Form for creating public or private rooms |
+| `/rooms/:id` | `authGuard` | Room Details – Pcenter | Workspace with focus timer, member roster, and task panel |
+| `/profile` | `authGuard` | Profile – Pcenter | User profile dashboard and metadata editor |
+| `/404` | None | 404 - Page Not Found – Pcenter | Route fallback page |
+| `/` | None | None | Redirects to `/register` |
+| `/**` | None | None | Wildcard route; redirects to `/404` |
 
-### Why This Stack?
-- **Blazing Fast Loads**: With Angular's SSR, the initial page load is pre-rendered on the node server (`server.mjs`), drastically improving SEO, Largest Contentful Paint (LCP), and perceived performance. Client-side hydration seamlessly takes over for a SPA experience.
-- **Type Safety**: Built entirely in strict TypeScript, eliminating entire classes of runtime errors and ensuring models align perfectly with the backend DTOs.
-- **Modern Angular Features**: Utilizing the latest Angular 22 features, including **Standalone Components** (removing the need for `NgModules`), optimized **Control Flow** (`@if`, `@for`), and **Signals** for highly reactive, glitch-free UI state management.
+## Frontend Features and Technical Architecture
 
-## 🌌 The "Vibe-Coded" Philosophy
+- Standalone Architecture: Entire application is built using Angular standalone components with modern `@if` and `@for` control flow blocks.
+- Server-Side Rendering (SSR) and Hydration: Pre-rendered using `@angular/ssr` and Node/Express server (`server.ts`), hydrated on the client without full page reloads.
+- State Facades: State and business logic are segregated into dedicated facade services (`RoomsFacade`, `RoomDetailFacade`, `ProfileFacade`, `AuthFacade`) combining Signals and RxJS observables.
+- Route Guards: Functional `authGuard` prevents unauthorized access to protected paths, while `guestGuard` redirects logged-in users away from registration and login screens.
+- HTTP Interceptor Chain:
+  - `authInterceptor`: Intercepts outbound requests and injects the `Authorization: Bearer <token>` header for `/api/` calls.
+  - `authErrorInterceptor`: Catches `401 Unauthorized` responses and cleans authentication state.
+  - `ngrokInterceptor`: Injects the `ngrok-skip-browser-warning` header when querying through development tunnels.
+- Heartbeat Presence System: While inside `/rooms/:id`, the component initiates an HTTP interval loop sending a heartbeat to `/api/v1/rooms/{roomId}/heartbeat` every 25 seconds and polling `/api/v1/rooms/{roomId}/members` to keep the active member roster up to date. No WebSocket connections are used.
+- Productivity Utilities: Interactive session timer/stopwatch component with play, pause, and reset controls, along with an in-room task management panel for task CRUD.
+- Styling: Native CSS variables and custom SCSS components without third-party CSS utility frameworks, supporting responsive navigation, toast notifications (`ToastService`), and theme switching (`ThemeService`).
 
-When we say this is *vibe-coded*, we mean the design aesthetics were a primary engineering constraint, not an afterthought.
+## Frontend File Structure
 
-- **Dynamic Interfaces**: The UI features smooth micro-interactions, hover states, and transitions that make the application feel responsive and alive.
-- **Premium Aesthetics**: Moving away from generic bootstrap-style layouts, we utilize modern design tokens—think glassmorphism, tailored HSL color palettes, deep dark modes, and modern typography.
-- **Uncompromising UX**: Every button click, every room card, and every modal is designed to wow the user at first glance, encouraging interaction and engagement. Forms utilize Angular's Reactive Forms for instant, custom validation feedback.
-
-## 🏗️ Architecture & Structure
-
-The frontend is strictly organized using a feature-driven architecture, making it highly modular and easy to navigate:
-
-```text
-src/app/
-├── core/             # The backbone. Singleton services, interceptors, models, guards, and shared components.
-│   ├── components/   # Global UI elements (Navbars, Loaders, Toasts)
-│   ├── guards/       # Route protection (AuthGuard using inject(Router))
-│   ├── interceptors/ # HTTP interception (JWT injection, global error handling)
-│   ├── models/       # TypeScript interfaces reflecting backend DTOs
-│   └── services/     # Global state and API services
-└── features/         # Domain-specific modules
-    ├── auth/         # Login, Registration (Reactive Forms)
-    ├── profile/      # User profile management
-    └── rooms/        # Room directory, detail views, and real-time presence UI
+```
+frontend/
+├── angular.json                                 # Angular CLI workspace build configuration
+├── package.json                                 # Node dependencies and build scripts
+├── Dockerfile                                   # Node 22 container configuration
+├── dev-proxy.conf.json                          # Proxy settings for ngrok remote endpoint
+├── local-proxy.conf.json                        # Proxy settings for local Spring Boot backend
+├── proxy.conf.json                              # Proxy settings for Docker network backend
+└── src/
+    ├── main.ts                                  # Client application bootstrap
+    ├── main.server.ts                           # Server application bootstrap
+    ├── server.ts                                # Express server engine for SSR
+    ├── index.html                               # Root HTML template
+    ├── styles.css                               # Global styling and CSS custom properties
+    ├── environments/                            # Environment configuration files
+    │   ├── environment.ts                       # Production environment configuration
+    │   └── environment.development.ts           # Local development configuration
+    └── app/
+        ├── app.ts                               # Root component
+        ├── app.html                             # Root layout markup with router-outlet and toasts
+        ├── app.config.ts                        # Application providers, router, interceptors
+        ├── app.config.server.ts                 # Server-side rendering providers
+        ├── app.routes.ts                        # Application route definitions
+        ├── app.routes.server.ts                 # Server render mode route configuration
+        ├── core/                                # Singleton logic and shared application primitives
+        │   ├── components/toast/                # Toast notification UI component
+        │   ├── guards/                          # Functional route guards (auth.guard, guest.guard)
+        │   ├── interceptors/                    # HTTP interceptors (auth, auth-error, ngrok)
+        │   ├── models/                          # Shared data interfaces (auth, room-member)
+        │   └── services/                        # AuthService, ToastService, ThemeService
+        └── features/                            # Feature-driven domain modules
+            ├── auth/                            # Authentication module
+            │   ├── login/                       # Login component and reactive forms
+            │   ├── register/                    # Registration component and reactive forms
+            │   └── services/auth.facade.ts      # Authentication state facade
+            ├── profile/                         # User profile module
+            │   ├── dashboard/                   # Profile viewing and editing view
+            │   ├── models/profile.models.ts     # Profile TypeScript contracts
+            │   └── services/                    # ProfileService and ProfileFacade
+            ├── rooms/                           # Room browsing, detail, and member interaction
+            │   ├── rooms-view.component.*       # Rooms listing and search overview
+            │   ├── create-room/                 # Room creation form component
+            │   ├── room-detail/                 # In-room workspace container
+            │   ├── components/                  # Room UI sub-components
+            │   │   ├── room-action-button/      # Action triggers
+            │   │   ├── room-card/               # Room summary card
+            │   │   ├── room-header/             # Room title, favorite toggle, and controls
+            │   │   ├── room-join/               # Modal dialog for joining rooms
+            │   │   ├── room-members-list/       # Active members roster
+            │   │   ├── room-task-panel/         # In-room task management interface
+            │   │   ├── room-timer/              # Focus timer and stopwatch widget
+            │   │   ├── sidebar/                 # Left navigation sidebar
+            │   │   └── top-nav/                 # Top application header
+            │   ├── models/rooms.models.ts       # Room and task data contracts
+            │   └── services/                    # RoomService, TaskService, RoomMemberService, Facades
+            └── not-found/                       # 404 error page component
 ```
 
-### Key Technical Achievements
-- **Seamless Auth Flow**: Functional HTTP Interceptors (`HttpInterceptorFn`) automatically attach JWT tokens from local storage to outbound requests. If a `401 Unauthorized` response is caught, the interceptor gracefully handles token expiration by redirecting to the login flow without breaking the app state.
-- **Smart & Dumb Components**: Strict separation of container components (handling logic/services/state) and presentational components (handling the vibes/UI/DOM events), adhering to unidirectional data flow.
-- **Proxy Configuration**: Integrated `dev-proxy.conf.json` to seamlessly route local API calls (`/api/v1/*`) to the Spring Boot backend during development, avoiding CORS issues.
+## Running the Application
 
-## 🛠️ Getting Started
-
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Development Server**:
-   Run the application locally with live-reload:
+1. Local development server:
    ```bash
    npm start
-   # or
-   ng serve
    ```
-   The app will be available at `http://localhost:4200/`. API requests will be proxied automatically.
 
-3. **Production Build**:
+2. Build for production:
    ```bash
    npm run build
    ```
-   This generates both browser and server bundles in the `dist/` directory.
 
-4. **Serve SSR locally**:
+3. Run the SSR server bundle:
    ```bash
    npm run serve:ssr:frontend
    ```
