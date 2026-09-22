@@ -9,6 +9,16 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+      # تحديد حد الذاكرة لمحرك Node/V8 أثناء عمل ng serve و Webpack/Vite
+      - NODE_OPTIONS="--max-old-space-size=1536"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - backend
 
@@ -22,6 +32,16 @@ services:
       DB_NAME: test_docker
       DB_USER: postgres
       DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
     depends_on:
       - redis
       - db
@@ -36,11 +56,28 @@ services:
       - "5432:5432"
     volumes:
       - database_volume:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "96mb", "--maxmemory-policy", "allkeys-lru"]
     ports:
       - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
 
 volumes:
   database_volume:
