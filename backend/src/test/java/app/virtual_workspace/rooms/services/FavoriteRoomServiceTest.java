@@ -28,7 +28,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
 import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.favoriteroom.FavoriteRoomResponseDto;
 import app.virtual_workspace.rooms.mappers.FavoriteRoomMapper;
@@ -48,9 +47,6 @@ public class FavoriteRoomServiceTest {
 
     @Mock
     private FavoriteRoomMapper favoriteRoomMapper;
-
-    @Mock
-    private UserAuthService userAuthService;
 
     @InjectMocks
     private FavoriteRoomService favoriteRoomService;
@@ -73,7 +69,7 @@ public class FavoriteRoomServiceTest {
                 .description("Main room")
                 .build();
 
-        sampleFavoriteRoom = new FavoriteRoom(100L, sampleUser, sampleRoom, LocalDateTime.now());
+        sampleFavoriteRoom = new FavoriteRoom(100L, sampleUser, 1L, sampleRoom, 10L, LocalDateTime.now());
 
         sampleResponseDto = new FavoriteRoomResponseDto(
                 10L,
@@ -93,18 +89,16 @@ public class FavoriteRoomServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Slice<FavoriteRoom> favoriteRoomSlice = new SliceImpl<>(List.of(sampleFavoriteRoom), pageable, false);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.findFavoriteRoomsByUserId(1L, pageable)).thenReturn(favoriteRoomSlice);
             when(favoriteRoomMapper.modelToFavoriteRoomResponseDto(sampleFavoriteRoom)).thenReturn(sampleResponseDto);
 
-            Slice<FavoriteRoomResponseDto> result = favoriteRoomService.getFavoriteRooms(pageable);
+            Slice<FavoriteRoomResponseDto> result = favoriteRoomService.getFavoriteRooms(1L, pageable);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst().getRoomId()).isEqualTo(10L);
             assertThat(result.getContent().getFirst().getTitle()).isEqualTo("Conference Room");
 
-            verify(userAuthService, times(1)).getAuthenticatedUser();
             verify(favoriteRoomRepository, times(1)).findFavoriteRoomsByUserId(1L, pageable);
             verify(favoriteRoomMapper, times(1)).modelToFavoriteRoomResponseDto(sampleFavoriteRoom);
         }
@@ -115,10 +109,9 @@ public class FavoriteRoomServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Slice<FavoriteRoom> emptySlice = new SliceImpl<>(Collections.emptyList(), pageable, false);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.findFavoriteRoomsByUserId(1L, pageable)).thenReturn(emptySlice);
 
-            Slice<FavoriteRoomResponseDto> result = favoriteRoomService.getFavoriteRooms(pageable);
+            Slice<FavoriteRoomResponseDto> result = favoriteRoomService.getFavoriteRooms(1L, pageable);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).isEmpty();
@@ -127,17 +120,15 @@ public class FavoriteRoomServiceTest {
         }
 
         @Test
-        @DisplayName("Should propagate exception when userAuthService throws")
-        void getFavoriteRooms_shouldPropagateException_whenUserAuthServiceThrows() {
+        @DisplayName("Should propagate exception when repository throws")
+        void getFavoriteRooms_shouldPropagateException_whenRepositoryThrows() {
             Pageable pageable = PageRequest.of(0, 10);
-            when(userAuthService.getAuthenticatedUser())
-                    .thenThrow(new ResourceNotFoundException("Unauthenticated"));
+            when(favoriteRoomRepository.findFavoriteRoomsByUserId(1L, pageable))
+                    .thenThrow(new RuntimeException("Database error"));
 
-            assertThatThrownBy(() -> favoriteRoomService.getFavoriteRooms(pageable))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Unauthenticated");
-
-            verify(favoriteRoomRepository, never()).findFavoriteRoomsByUserId(any(), any());
+            assertThatThrownBy(() -> favoriteRoomService.getFavoriteRooms(1L, pageable))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("Database error");
         }
     }
 
@@ -148,10 +139,9 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should do nothing when room is already in favorites (early return)")
         void addRoomToFavorite_shouldDoNothing_whenRoomAlreadyInFavorites() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(true);
 
-            favoriteRoomService.addRoomToFavorite(10L);
+            favoriteRoomService.addRoomToFavorite(1L, 10L);
 
             verify(favoriteRoomRepository, times(1)).existsByUserIdAndRoomId(1L, 10L);
             verify(roomRepository, never()).findById(any());
@@ -161,29 +151,27 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should save favorite room when room is not in favorites and room exists")
         void addRoomToFavorite_shouldSaveFavoriteRoom_whenNotAlreadyInFavorites() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(false);
             when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
 
-            favoriteRoomService.addRoomToFavorite(10L);
+            favoriteRoomService.addRoomToFavorite(1L, 10L);
 
             verify(roomRepository, times(1)).findById(10L);
             ArgumentCaptor<FavoriteRoom> captor = ArgumentCaptor.forClass(FavoriteRoom.class);
             verify(favoriteRoomRepository, times(1)).save(captor.capture());
 
             FavoriteRoom saved = captor.getValue();
-            assertThat(saved.getUser()).isEqualTo(sampleUser);
-            assertThat(saved.getRoom()).isEqualTo(sampleRoom);
+            assertThat(saved.getUserId()).isEqualTo(1L);
+            assertThat(saved.getRoomId()).isEqualTo(10L);
         }
 
         @Test
         @DisplayName("Should throw ResourceNotFoundException when room is not found")
         void addRoomToFavorite_shouldThrowResourceNotFoundException_whenRoomNotFound() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 999L)).thenReturn(false);
             when(roomRepository.findById(999L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> favoriteRoomService.addRoomToFavorite(999L))
+            assertThatThrownBy(() -> favoriteRoomService.addRoomToFavorite(1L, 999L))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("No room found with id: 999");
 
@@ -197,11 +185,10 @@ public class FavoriteRoomServiceTest {
 
             for (long id : boundaryIds) {
                 Room r = Room.builder().id(id).build();
-                when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
                 when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, id)).thenReturn(false);
                 when(roomRepository.findById(id)).thenReturn(Optional.of(r));
 
-                favoriteRoomService.addRoomToFavorite(id);
+                favoriteRoomService.addRoomToFavorite(1L, id);
 
                 verify(roomRepository, times(1)).findById(id);
             }
@@ -211,13 +198,12 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should propagate exception when favoriteRoomRepository.save throws downstream")
         void addRoomToFavorite_shouldPropagateException_whenSaveThrows() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(false);
             when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
             when(favoriteRoomRepository.save(any(FavoriteRoom.class)))
                     .thenThrow(new RuntimeException("Database error"));
 
-            assertThatThrownBy(() -> favoriteRoomService.addRoomToFavorite(10L))
+            assertThatThrownBy(() -> favoriteRoomService.addRoomToFavorite(1L, 10L))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Database error");
         }
@@ -230,11 +216,10 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should delete favorite room when it is in the favorite list")
         void removeRoomFromFavorite_shouldDeleteFavoriteRoom_whenExists() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.findFavoriteRoomByUserIdAndRoomId(1L, 10L))
                     .thenReturn(Optional.of(sampleFavoriteRoom));
 
-            favoriteRoomService.removeRoomFromFavorite(10L);
+            favoriteRoomService.removeRoomFromFavorite(1L, 10L);
 
             verify(favoriteRoomRepository, times(1)).findFavoriteRoomByUserIdAndRoomId(1L, 10L);
             verify(favoriteRoomRepository, times(1)).delete(sampleFavoriteRoom);
@@ -243,11 +228,10 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should throw ResourceNotFoundException when room is not in favorite list")
         void removeRoomFromFavorite_shouldThrowException_whenNotInFavorites() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.findFavoriteRoomByUserIdAndRoomId(1L, 999L))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> favoriteRoomService.removeRoomFromFavorite(999L))
+            assertThatThrownBy(() -> favoriteRoomService.removeRoomFromFavorite(1L, 999L))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("This room is not in your favorite list");
 
@@ -260,12 +244,11 @@ public class FavoriteRoomServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                FavoriteRoom fr = new FavoriteRoom(id, sampleUser, sampleRoom, LocalDateTime.now());
-                when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
+                FavoriteRoom fr = new FavoriteRoom(id, sampleUser, 1L, sampleRoom, id, LocalDateTime.now());
                 when(favoriteRoomRepository.findFavoriteRoomByUserIdAndRoomId(1L, id))
                         .thenReturn(Optional.of(fr));
 
-                favoriteRoomService.removeRoomFromFavorite(id);
+                favoriteRoomService.removeRoomFromFavorite(1L, id);
 
                 verify(favoriteRoomRepository, times(1)).delete(fr);
             }
@@ -274,13 +257,12 @@ public class FavoriteRoomServiceTest {
         @Test
         @DisplayName("Should propagate exception when delete throws downstream")
         void removeRoomFromFavorite_shouldPropagateException_whenDeleteThrows() {
-            when(userAuthService.getAuthenticatedUser()).thenReturn(sampleUser);
             when(favoriteRoomRepository.findFavoriteRoomByUserIdAndRoomId(1L, 10L))
                     .thenReturn(Optional.of(sampleFavoriteRoom));
             org.mockito.Mockito.doThrow(new RuntimeException("Delete failed"))
                     .when(favoriteRoomRepository).delete(sampleFavoriteRoom);
 
-            assertThatThrownBy(() -> favoriteRoomService.removeRoomFromFavorite(10L))
+            assertThatThrownBy(() -> favoriteRoomService.removeRoomFromFavorite(1L, 10L))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Delete failed");
         }

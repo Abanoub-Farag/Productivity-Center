@@ -29,7 +29,6 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.AccessDeniedException;
 
 import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.room.AllRoomResponseDto;
@@ -47,9 +46,6 @@ public class RoomServiceTest {
 
     @Mock
     private RoomRepository roomRepository;
-
-    @Mock
-    private UserAuthService userAuthService;
 
     @Mock
     private RoomMapper roomMapper;
@@ -81,6 +77,7 @@ public class RoomServiceTest {
                 .description("Discussion Room")
                 .visibility(Visibility.PUBLIC)
                 .user(ownerUser)
+                .userId(1L)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -156,19 +153,18 @@ public class RoomServiceTest {
 
             CreateRoomResponseDto responseDto = new CreateRoomResponseDto(10L, "New Room", "Room desc", 1L, Visibility.PUBLIC);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(ownerUser);
             when(roomRepository.existsByUserId(1L)).thenReturn(false);
             when(roomMapper.createRoomRequestDtoToModel(requestDto)).thenReturn(mappedRoom);
             when(roomMapper.createRoomRequestToResponse(mappedRoom)).thenReturn(responseDto);
 
-            CreateRoomResponseDto result = roomService.createRoom(requestDto);
+            CreateRoomResponseDto result = roomService.createRoom(1L, requestDto);
 
             assertThat(result).isNotNull();
             assertThat(result.getTitle()).isEqualTo("New Room");
 
             ArgumentCaptor<Room> captor = ArgumentCaptor.forClass(Room.class);
             verify(roomRepository, times(1)).save(captor.capture());
-            assertThat(captor.getValue().getUser()).isEqualTo(ownerUser);
+            assertThat(captor.getValue().getUserId()).isEqualTo(1L);
         }
 
         @Test
@@ -176,10 +172,9 @@ public class RoomServiceTest {
         void createRoom_shouldThrowException_whenUserAlreadyHasRoom() {
             CreateRoomRequestDto requestDto = new CreateRoomRequestDto("Another Room", "Desc", Visibility.PUBLIC);
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(ownerUser);
             when(roomRepository.existsByUserId(1L)).thenReturn(true);
 
-            assertThatThrownBy(() -> roomService.createRoom(requestDto))
+            assertThatThrownBy(() -> roomService.createRoom(1L, requestDto))
                     .isInstanceOf(ResourceAlreadyExistsException.class)
                     .hasMessage("User already has room");
 
@@ -192,12 +187,11 @@ public class RoomServiceTest {
             CreateRoomRequestDto requestDto = new CreateRoomRequestDto("Room", "Desc", Visibility.PUBLIC);
             Room mappedRoom = new Room();
 
-            when(userAuthService.getAuthenticatedUser()).thenReturn(ownerUser);
             when(roomRepository.existsByUserId(1L)).thenReturn(false);
             when(roomMapper.createRoomRequestDtoToModel(requestDto)).thenReturn(mappedRoom);
             when(roomRepository.save(mappedRoom)).thenThrow(new RuntimeException("DB error"));
 
-            assertThatThrownBy(() -> roomService.createRoom(requestDto))
+            assertThatThrownBy(() -> roomService.createRoom(1L, requestDto))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("DB error");
         }
@@ -213,10 +207,9 @@ public class RoomServiceTest {
             sampleRoom.setVisibility(Visibility.PUBLIC);
 
             when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
-            when(userAuthService.getAuthenticatedUser()).thenReturn(otherUser); // non-owner
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            RoomDataResponseDto result = roomService.getRoomData(10L);
+            RoomDataResponseDto result = roomService.getRoomData(2L, 10L);
 
             assertThat(result).isNotNull();
             assertThat(result.getTitle()).isEqualTo("Conference A");
@@ -229,10 +222,9 @@ public class RoomServiceTest {
             sampleRoom.setVisibility(Visibility.PRIVATE);
 
             when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
-            when(userAuthService.getAuthenticatedUser()).thenReturn(ownerUser); // owner
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            RoomDataResponseDto result = roomService.getRoomData(10L);
+            RoomDataResponseDto result = roomService.getRoomData(1L, 10L);
 
             assertThat(result).isNotNull();
             verify(roomMapper, times(1)).roomModelToDto(sampleRoom);
@@ -244,9 +236,8 @@ public class RoomServiceTest {
             sampleRoom.setVisibility(Visibility.PRIVATE);
 
             when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
-            when(userAuthService.getAuthenticatedUser()).thenReturn(otherUser); // non-owner
 
-            assertThatThrownBy(() -> roomService.getRoomData(10L))
+            assertThatThrownBy(() -> roomService.getRoomData(2L, 10L))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage("Access denied for this room");
 
@@ -258,7 +249,7 @@ public class RoomServiceTest {
         void getRoomData_shouldThrowNotFound_whenRoomDoesNotExist() {
             when(roomRepository.findById(999L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> roomService.getRoomData(999L))
+            assertThatThrownBy(() -> roomService.getRoomData(1L, 999L))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Room not found with id: 999");
         }
@@ -271,10 +262,9 @@ public class RoomServiceTest {
             for (long id : boundaryIds) {
                 Room r = Room.builder().id(id).visibility(Visibility.PUBLIC).user(ownerUser).build();
                 when(roomRepository.findById(id)).thenReturn(Optional.of(r));
-                when(userAuthService.getAuthenticatedUser()).thenReturn(ownerUser);
                 when(roomMapper.roomModelToDto(r)).thenReturn(new RoomDataResponseDto(id, "T", "D", 1L, Visibility.PUBLIC));
 
-                RoomDataResponseDto result = roomService.getRoomData(id);
+                RoomDataResponseDto result = roomService.getRoomData(1L, id);
 
                 assertThat(result).isNotNull();
                 assertThat(result.getId()).isEqualTo(id);
@@ -291,10 +281,10 @@ public class RoomServiceTest {
         void updateRoom_shouldUpdateAllFields_whenAllNonNull() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto("New Title", "New Desc", Visibility.PRIVATE);
 
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            RoomDataResponseDto result = roomService.updateRoom(10L, updateDto);
+            RoomDataResponseDto result = roomService.updateRoom(1L, 10L, updateDto);
 
             assertThat(sampleRoom.getTitle()).isEqualTo("New Title");
             assertThat(sampleRoom.getDescription()).isEqualTo("New Desc");
@@ -308,10 +298,10 @@ public class RoomServiceTest {
         void updateRoom_shouldUpdateOnlyTitle_whenOtherFieldsNull() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto("Only Title", null, null);
 
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            roomService.updateRoom(10L, updateDto);
+            roomService.updateRoom(1L, 10L, updateDto);
 
             assertThat(sampleRoom.getTitle()).isEqualTo("Only Title");
             assertThat(sampleRoom.getDescription()).isEqualTo("Discussion Room");
@@ -324,10 +314,10 @@ public class RoomServiceTest {
         void updateRoom_shouldUpdateOnlyDescription_whenOtherFieldsNull() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto(null, "Only Desc", null);
 
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            roomService.updateRoom(10L, updateDto);
+            roomService.updateRoom(1L, 10L, updateDto);
 
             assertThat(sampleRoom.getTitle()).isEqualTo("Conference A");
             assertThat(sampleRoom.getDescription()).isEqualTo("Only Desc");
@@ -340,10 +330,10 @@ public class RoomServiceTest {
         void updateRoom_shouldUpdateOnlyVisibility_whenOtherFieldsNull() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto(null, null, Visibility.PRIVATE);
 
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            roomService.updateRoom(10L, updateDto);
+            roomService.updateRoom(1L, 10L, updateDto);
 
             assertThat(sampleRoom.getTitle()).isEqualTo("Conference A");
             assertThat(sampleRoom.getDescription()).isEqualTo("Discussion Room");
@@ -356,10 +346,10 @@ public class RoomServiceTest {
         void updateRoom_shouldRetainFields_whenAllFieldsNull() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto(null, null, null);
 
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomMapper.roomModelToDto(sampleRoom)).thenReturn(sampleRoomDataDto);
 
-            roomService.updateRoom(10L, updateDto);
+            roomService.updateRoom(1L, 10L, updateDto);
 
             assertThat(sampleRoom.getTitle()).isEqualTo("Conference A");
             assertThat(sampleRoom.getDescription()).isEqualTo("Discussion Room");
@@ -368,13 +358,24 @@ public class RoomServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw ResourceNotFoundException when room not found for user")
+        void updateRoom_shouldThrowException_whenRoomNotFound() {
+            UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto();
+            when(roomRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> roomService.updateRoom(1L, 999L, updateDto))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Room with id: 999 not found");
+        }
+
+        @Test
         @DisplayName("Should propagate exception when roomRepository.save throws downstream")
         void updateRoom_shouldPropagateException_whenSaveThrows() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto("Title", null, null);
-            when(roomRepository.getRoomById(10L)).thenReturn(sampleRoom);
+            when(roomRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(sampleRoom));
             when(roomRepository.save(sampleRoom)).thenThrow(new RuntimeException("Save error"));
 
-            assertThatThrownBy(() -> roomService.updateRoom(10L, updateDto))
+            assertThatThrownBy(() -> roomService.updateRoom(1L, 10L, updateDto))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Save error");
         }
@@ -385,26 +386,23 @@ public class RoomServiceTest {
     class DeleteRoomTests {
 
         @Test
-        @DisplayName("Should delete room when room exists")
+        @DisplayName("Should delete room when room exists for user")
         void deleteRoom_shouldDelete_whenRoomExists() {
-            when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
+            when(roomRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(true);
 
-            roomService.deleteRoom(10L);
+            roomService.deleteRoom(1L, 10L);
 
-            verify(roomRepository, times(1)).findById(10L);
-            verify(roomRepository, times(1)).delete(sampleRoom);
+            verify(roomRepository, times(1)).deleteByIdAndUserId(10L, 1L);
         }
 
         @Test
         @DisplayName("Should throw ResourceNotFoundException when room does not exist")
         void deleteRoom_shouldThrowException_whenRoomNotFound() {
-            when(roomRepository.findById(999L)).thenReturn(Optional.empty());
+            when(roomRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(false);
 
-            assertThatThrownBy(() -> roomService.deleteRoom(999L))
+            assertThatThrownBy(() -> roomService.deleteRoom(1L, 999L))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Room Not Found");
-
-            verify(roomRepository, never()).delete(any());
+                    .hasMessage("Room with id: 999 not found");
         }
 
         @Test
@@ -413,23 +411,21 @@ public class RoomServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                Room r = Room.builder().id(id).build();
-                when(roomRepository.findById(id)).thenReturn(Optional.of(r));
+                when(roomRepository.deleteByIdAndUserId(id, 1L)).thenReturn(true);
 
-                roomService.deleteRoom(id);
+                roomService.deleteRoom(1L, id);
 
-                verify(roomRepository, times(1)).delete(r);
+                verify(roomRepository, times(1)).deleteByIdAndUserId(id, 1L);
             }
         }
 
         @Test
         @DisplayName("Should propagate exception when delete throws downstream")
         void deleteRoom_shouldPropagateException_whenDeleteThrows() {
-            when(roomRepository.findById(10L)).thenReturn(Optional.of(sampleRoom));
-            org.mockito.Mockito.doThrow(new RuntimeException("Delete error"))
-                    .when(roomRepository).delete(sampleRoom);
+            when(roomRepository.deleteByIdAndUserId(10L, 1L))
+                    .thenThrow(new RuntimeException("Delete error"));
 
-            assertThatThrownBy(() -> roomService.deleteRoom(10L))
+            assertThatThrownBy(() -> roomService.deleteRoom(1L, 10L))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Delete error");
         }

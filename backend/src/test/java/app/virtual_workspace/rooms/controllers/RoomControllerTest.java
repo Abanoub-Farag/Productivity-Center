@@ -25,6 +25,8 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import app.virtual_workspace.accounts.dtos.UserPrincipal;
+import app.virtual_workspace.accounts.models.enums.Role;
 import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.room.AllRoomResponseDto;
@@ -45,12 +47,21 @@ public class RoomControllerTest {
     @InjectMocks
     private RoomController roomController;
 
+    private UserPrincipal userPrincipal;
     private AllRoomResponseDto sampleAllRoomDto;
     private CreateRoomResponseDto sampleCreatedRoomDto;
     private RoomDataResponseDto sampleRoomDataDto;
 
     @BeforeEach
     void setUp() {
+        userPrincipal = UserPrincipal.builder()
+                .id(1L)
+                .email("user@example.com")
+                .password("password")
+                .active(true)
+                .role(Role.ROLE_USER)
+                .build();
+
         sampleAllRoomDto = new AllRoomResponseDto(1L, "Design Room", "UI/UX", 10L, Visibility.PUBLIC);
         sampleCreatedRoomDto = new CreateRoomResponseDto(1L, "Design Room", "UI/UX", 10L, Visibility.PUBLIC);
         sampleRoomDataDto = new RoomDataResponseDto(1L, "Design Room", "UI/UX", 10L, Visibility.PUBLIC);
@@ -101,9 +112,9 @@ public class RoomControllerTest {
         void createRoom_shouldReturnCreated_whenRequestIsValid() {
             CreateRoomRequestDto request = new CreateRoomRequestDto("Design Room", "UI/UX", Visibility.PUBLIC);
 
-            when(roomService.createRoom(request)).thenReturn(sampleCreatedRoomDto);
+            when(roomService.createRoom(1L, request)).thenReturn(sampleCreatedRoomDto);
 
-            ResponseEntity<ApiResponse<CreateRoomResponseDto>> response = roomController.createRoom(request);
+            ResponseEntity<ApiResponse<CreateRoomResponseDto>> response = roomController.createRoom(request, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
@@ -111,7 +122,7 @@ public class RoomControllerTest {
             assertThat(response.getBody().getMessage()).isEqualTo("Room created successfully");
             assertThat(response.getBody().getData()).isEqualTo(sampleCreatedRoomDto);
 
-            verify(roomService, times(1)).createRoom(request);
+            verify(roomService, times(1)).createRoom(1L, request);
         }
 
         @Test
@@ -119,10 +130,10 @@ public class RoomControllerTest {
         void createRoom_shouldPropagateException_whenUserAlreadyHasRoom() {
             CreateRoomRequestDto request = new CreateRoomRequestDto("Room", "Desc", Visibility.PUBLIC);
 
-            when(roomService.createRoom(request))
+            when(roomService.createRoom(1L, request))
                     .thenThrow(new ResourceAlreadyExistsException("User already has room"));
 
-            assertThatThrownBy(() -> roomController.createRoom(request))
+            assertThatThrownBy(() -> roomController.createRoom(request, userPrincipal))
                     .isInstanceOf(ResourceAlreadyExistsException.class)
                     .hasMessage("User already has room");
         }
@@ -135,9 +146,9 @@ public class RoomControllerTest {
         @Test
         @DisplayName("Should return 200 OK with room data when room exists and accessible")
         void room_shouldReturnOkWithRoomData() {
-            when(roomService.getRoomData(1L)).thenReturn(sampleRoomDataDto);
+            when(roomService.getRoomData(1L, 1L)).thenReturn(sampleRoomDataDto);
 
-            ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.room(1L);
+            ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.room(1L, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -145,7 +156,7 @@ public class RoomControllerTest {
             assertThat(response.getBody().getMessage()).isEqualTo("Room data retrieved successfully");
             assertThat(response.getBody().getData()).isEqualTo(sampleRoomDataDto);
 
-            verify(roomService, times(1)).getRoomData(1L);
+            verify(roomService, times(1)).getRoomData(1L, 1L);
         }
 
         @Test
@@ -155,23 +166,23 @@ public class RoomControllerTest {
 
             for (long id : boundaryIds) {
                 RoomDataResponseDto dto = new RoomDataResponseDto(id, "T", "D", 1L, Visibility.PUBLIC);
-                when(roomService.getRoomData(id)).thenReturn(dto);
+                when(roomService.getRoomData(1L, id)).thenReturn(dto);
 
-                ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.room(id);
+                ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.room(id, userPrincipal);
 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                 assertThat(response.getBody().getData().getId()).isEqualTo(id);
-                verify(roomService, times(1)).getRoomData(id);
+                verify(roomService, times(1)).getRoomData(1L, id);
             }
         }
 
         @Test
         @DisplayName("Should propagate ResourceNotFoundException when room not found")
         void room_shouldPropagateException_whenRoomNotFound() {
-            when(roomService.getRoomData(999L))
+            when(roomService.getRoomData(1L, 999L))
                     .thenThrow(new ResourceNotFoundException("Room not found with id: 999"));
 
-            assertThatThrownBy(() -> roomController.room(999L))
+            assertThatThrownBy(() -> roomController.room(999L, userPrincipal))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Room not found with id: 999");
         }
@@ -187,9 +198,9 @@ public class RoomControllerTest {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto("New Title", "New Desc", Visibility.PRIVATE);
             RoomDataResponseDto updatedDto = new RoomDataResponseDto(1L, "New Title", "New Desc", 10L, Visibility.PRIVATE);
 
-            when(roomService.updateRoom(1L, updateDto)).thenReturn(updatedDto);
+            when(roomService.updateRoom(1L, 1L, updateDto)).thenReturn(updatedDto);
 
-            ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.updateRoom(1L, updateDto);
+            ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.updateRoom(1L, updateDto, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -197,7 +208,7 @@ public class RoomControllerTest {
             assertThat(response.getBody().getMessage()).isEqualTo("Room updated successfully");
             assertThat(response.getBody().getData()).isEqualTo(updatedDto);
 
-            verify(roomService, times(1)).updateRoom(1L, updateDto);
+            verify(roomService, times(1)).updateRoom(1L, 1L, updateDto);
         }
 
         @Test
@@ -207,12 +218,12 @@ public class RoomControllerTest {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto("T", "D", Visibility.PUBLIC);
 
             for (long id : boundaryIds) {
-                when(roomService.updateRoom(id, updateDto)).thenReturn(sampleRoomDataDto);
+                when(roomService.updateRoom(1L, id, updateDto)).thenReturn(sampleRoomDataDto);
 
-                ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.updateRoom(id, updateDto);
+                ResponseEntity<ApiResponse<RoomDataResponseDto>> response = roomController.updateRoom(id, updateDto, userPrincipal);
 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                verify(roomService, times(1)).updateRoom(id, updateDto);
+                verify(roomService, times(1)).updateRoom(1L, id, updateDto);
             }
         }
 
@@ -220,10 +231,10 @@ public class RoomControllerTest {
         @DisplayName("Should propagate exception when room update fails downstream")
         void updateRoom_shouldPropagateException_whenUpdateFails() {
             UpdateRoomRequestDto updateDto = new UpdateRoomRequestDto();
-            when(roomService.updateRoom(1L, updateDto))
+            when(roomService.updateRoom(1L, 1L, updateDto))
                     .thenThrow(new RuntimeException("Update failed"));
 
-            assertThatThrownBy(() -> roomController.updateRoom(1L, updateDto))
+            assertThatThrownBy(() -> roomController.updateRoom(1L, updateDto, userPrincipal))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Update failed");
         }
@@ -236,9 +247,9 @@ public class RoomControllerTest {
         @Test
         @DisplayName("Should return 200 OK when room is deleted successfully")
         void deleteRoom_shouldReturnOk_whenDeleteSucceeds() {
-            doNothing().when(roomService).deleteRoom(1L);
+            doNothing().when(roomService).deleteRoom(1L, 1L);
 
-            ResponseEntity<ApiResponse<Void>> response = roomController.deleteRoom(1L);
+            ResponseEntity<ApiResponse<Void>> response = roomController.deleteRoom(1L, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -246,7 +257,7 @@ public class RoomControllerTest {
             assertThat(response.getBody().getMessage()).isEqualTo("Room deleted successfully");
             assertThat(response.getBody().getData()).isNull();
 
-            verify(roomService, times(1)).deleteRoom(1L);
+            verify(roomService, times(1)).deleteRoom(1L, 1L);
         }
 
         @Test
@@ -255,9 +266,9 @@ public class RoomControllerTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                ResponseEntity<ApiResponse<Void>> response = roomController.deleteRoom(id);
+                ResponseEntity<ApiResponse<Void>> response = roomController.deleteRoom(id, userPrincipal);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                verify(roomService, times(1)).deleteRoom(id);
+                verify(roomService, times(1)).deleteRoom(1L, id);
             }
         }
 
@@ -265,9 +276,9 @@ public class RoomControllerTest {
         @DisplayName("Should propagate ResourceNotFoundException when room does not exist")
         void deleteRoom_shouldPropagateException_whenRoomNotFound() {
             doThrow(new ResourceNotFoundException("Room Not Found"))
-                    .when(roomService).deleteRoom(999L);
+                    .when(roomService).deleteRoom(1L, 999L);
 
-            assertThatThrownBy(() -> roomController.deleteRoom(999L))
+            assertThatThrownBy(() -> roomController.deleteRoom(999L, userPrincipal))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Room Not Found");
         }
