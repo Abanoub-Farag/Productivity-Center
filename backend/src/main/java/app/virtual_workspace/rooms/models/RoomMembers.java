@@ -54,7 +54,7 @@ public class RoomMembers {
         @JoinColumn(name = "room_id")
         private Room room;
 
-        @Column(name = "room_id", nullable = false)
+        @Column(name = "room_id", nullable = false, insertable = false, updatable = false)
         private Long roomId;
 
         @Builder.Default
