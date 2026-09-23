@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
 import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.room.AllRoomResponseDto;
@@ -26,6 +27,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final RoomMapper roomMapper;
+    private final UserReferenceProvider userReferenceProvider;
 
     public Slice<AllRoomResponseDto> getAllRooms(Pageable pageable) {
         Slice<Room> rooms = roomRepository.findByVisibilityNot(Visibility.PRIVATE, pageable);
@@ -44,7 +46,7 @@ public class RoomService {
 
         Room room = roomMapper.createRoomRequestDtoToModel(createRoomRequestDto);
 
-        room.setUserId(userId);
+        room.setUser(userReferenceProvider.getReference(userId));
         roomRepository.save(room);
 
         return roomMapper.createRoomRequestToResponse(room);
@@ -54,7 +56,7 @@ public class RoomService {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + id));
 
-        if (room.getVisibility() != Visibility.PUBLIC && !room.getUser().getId().equals(userId)) {
+        if (room.getVisibility() != Visibility.PUBLIC && !room.getUserId().equals(userId)) {
             throw new AccessDeniedException("Access denied for this room");
         }
 

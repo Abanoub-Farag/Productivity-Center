@@ -1,10 +1,13 @@
-import { Injectable, inject, signal, DestroyRef } from '@angular/core';
+import { Injectable, inject, signal, DestroyRef, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { RoomsDataService } from './rooms-data.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Room, FavoriteRoomItem, RoomData } from '../models/rooms.models';
+import { Room, FavoriteRoomItem, RoomData, CreateRoomDto, UpdateRoomDto } from '../models/rooms.models';
+
+type ActiveTab = 'All Rooms' | 'My Teams' | 'Favorites';
 
 @Injectable()
 export class RoomsFacade {
@@ -13,7 +16,7 @@ export class RoomsFacade {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  // ── Readonly state ─────────────────────────────────────────────────────────
+  // ── State ──────────────────────────────────────────────────────────────────
 
   readonly rooms = signal<Room[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -28,7 +31,62 @@ export class RoomsFacade {
   /** Delegates to RoomsDataService — single source of truth for the user's active room. */
   readonly userRoomId = this.data.userRoomId;
 
+  /** Current authenticated user's numeric ID — used for ownership checks. */
+  readonly currentUserId = computed<number | null>(() => this.authService.currentUser()?.id ?? null);
+
+  private readonly _activeTab = signal<ActiveTab>('All Rooms');
+  /** Read-only view of the active tab for template consumers. */
+  readonly activeTab = computed(() => this._activeTab());
+
   // ── Actions ────────────────────────────────────────────────────────────────
+
+  setActiveTab(tab: ActiveTab): void {
+    this._activeTab.set(tab);
+  }
+
+  /**
+   * Loads favorites first, then rooms — guarantees isFavorite is correctly
+   * set on every room card without a race condition.
+   */
+  loadAll(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.data.getFavorites(0, 100)
+      .pipe(
+        switchMap((res) => {
+          const favContent: FavoriteRoomItem[] = res.data?.content ?? [];
+          const set = new Set(favContent.map((f) => f.roomId.toString()));
+          this.favoriteRoomIds.set(set);
+          return this.data.getRooms(0, 50);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          const favSet = this.favoriteRoomIds();
+          const fetchedRooms = response.data?.content ?? [];
+          const mapped: Room[] = fetchedRooms
+            .filter((r: RoomData) => r.id != null)
+            .map((r: RoomData) => ({
+              id: r.id.toString(),
+              title: r.title ?? 'Untitled Room',
+              description: r.description ?? 'No description provided.',
+              tags: r.tags ?? [],
+              actionType: (r.actionType as 'join' | 'view') ?? 'view',
+              visibility: r.visibility ?? 'PUBLIC',
+              isFavorite: favSet.has(r.id.toString()),
+              ownerId: r.ownerId,
+            }));
+          this.rooms.set(mapped);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load rooms.');
+          this.isLoading.set(false);
+        },
+      });
+  }
 
   loadRooms(): void {
     this.isLoading.set(true);
@@ -50,6 +108,7 @@ export class RoomsFacade {
               actionType: (r.actionType as 'join' | 'view') ?? 'view',
               visibility: r.visibility ?? 'PUBLIC',
               isFavorite: favSet.has(r.id.toString()),
+              ownerId: r.ownerId,
             }));
           this.rooms.set(mapped);
           this.isLoading.set(false);
@@ -148,6 +207,52 @@ export class RoomsFacade {
     });
   }
 
+  createRoom(payload: CreateRoomDto): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.data.createRoom(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.isLoading.set(false);
+          this.handleRoomCreated(response.data?.id);
+        },
+        error: (err: unknown) => {
+          console.error('Error creating room', err);
+          this.error.set('Failed to create the room. Please try again.');
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  updateRoom(roomId: string, dto: UpdateRoomDto): void {
+    this.data.updateRoom(roomId, dto)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const updated = response.data;
+          if (!updated) return;
+          this.rooms.update((list) =>
+            list.map((r) =>
+              r.id === roomId
+                ? {
+                    ...r,
+                    title: updated.title ?? r.title,
+                    description: updated.description ?? r.description,
+                    visibility: updated.visibility ?? r.visibility,
+                  }
+                : r,
+            ),
+          );
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Failed to update room:', err);
+          alert(this.extractErrorMessage(err, 'Could not update the room.'));
+        },
+      });
+  }
+
   /** Called after a successful room creation to update auth user state + navigate. */
   handleRoomCreated(newRoomId: number | undefined): void {
     if (newRoomId) {
@@ -161,7 +266,7 @@ export class RoomsFacade {
   // ── Private ────────────────────────────────────────────────────────────────
 
   private handleFavoriteSuccess(roomId: string, targetState: boolean): void {
-    const activeTab = this._activeTab;
+    const activeTab = this._activeTab();
     this.rooms.update((list) => {
       if (!targetState && activeTab === 'Favorites') {
         return list.filter((r) => r.id !== roomId);
@@ -202,10 +307,4 @@ export class RoomsFacade {
     }
     return (err?.error?.message as string | undefined) ?? defaultMsg;
   }
-
-  /**
-   * Allows the component to inform the facade which tab is active so that
-   * `handleFavoriteSuccess` can decide whether to remove a de-favorited card.
-   */
-  _activeTab: string = 'All Rooms';
 }

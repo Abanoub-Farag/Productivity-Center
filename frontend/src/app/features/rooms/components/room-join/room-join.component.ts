@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, DestroyRef } from '@angular/core';
+import { Component, input, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -113,18 +113,19 @@ export class RoomJoinComponent {
   private readonly roomService = inject(RoomService);
   private readonly destroyRef = inject(DestroyRef);
 
-  @Input() roomId?: number | string | null;
+  /** Optional: pre-fill the room ID to join. If provided, hides the manual input. */
+  readonly roomId = input<number | string | null | undefined>();
 
-  joinState = signal<RequestState>('idle');
-  errorMessage = signal<string | null>(null);
-  successMessage = signal<string | null>(null);
-  manualRoomId = signal<string>('');
+  readonly joinState = signal<RequestState>('idle');
+  readonly errorMessage = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
+  readonly manualRoomId = signal<string>('');
 
   private readonly joinRequest$ = new Subject<number | string | null | undefined>();
 
   constructor() {
     this.joinRequest$.pipe(
-      map(explicitId => explicitId ?? this.roomId ?? this.manualRoomId()),
+      map(explicitId => explicitId ?? this.roomId() ?? this.manualRoomId()),
       map(targetId => this.validateRoomId(targetId)),
       tap(validation => {
         if (!validation.valid) {
@@ -138,9 +139,9 @@ export class RoomJoinComponent {
         }
       }),
       filter(validation => validation.valid && validation.parsedId !== undefined),
-      exhaustMap(validation => 
+      exhaustMap(validation =>
         this.roomService.joinRoom(validation.parsedId!).pipe(
-          tap((response: ApiResponse<any>) => {
+          tap((response: ApiResponse<unknown>) => {
             this.joinState.set('success');
             this.successMessage.set(response.message || `Successfully joined room #${validation.parsedId}.`);
           }),
@@ -148,10 +149,10 @@ export class RoomJoinComponent {
             this.joinState.set('error');
             this.errorMessage.set(this.extractErrorMessage(err));
             return of(null);
-          })
-        )
+          }),
+        ),
       ),
-      takeUntilDestroyed(this.destroyRef)
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe();
   }
 
@@ -182,7 +183,7 @@ export class RoomJoinComponent {
     return { valid: true, parsedId };
   }
 
-  private extractErrorMessage(err: HttpErrorResponse | Error | any): string {
+  private extractErrorMessage(err: HttpErrorResponse | Error | unknown): string {
     if (err instanceof Error && !(err instanceof HttpErrorResponse)) {
       return err.message;
     }
@@ -195,24 +196,23 @@ export class RoomJoinComponent {
       return 'Network Error: Unable to reach the server. Please check your internet connection.';
     }
 
-    const payload = err.error;
+    const payload = err.error as { errors?: unknown; message?: string } | null;
     const parsedErrors = this.formatApiErrors(payload?.errors);
     if (parsedErrors) return parsedErrors;
 
-    const apiMessage = payload?.message;
-    return apiMessage ?? STATUS_MESSAGES[err.status] ?? `Error (${err.status}): Failed to join room.`;
+    return payload?.message ?? STATUS_MESSAGES[err.status] ?? `Error (${err.status}): Failed to join room.`;
   }
 
-  private formatApiErrors(apiErrors: any): string | null {
+  private formatApiErrors(apiErrors: unknown): string | null {
     if (!apiErrors) return null;
     if (typeof apiErrors === 'string') return apiErrors;
-    if (Array.isArray(apiErrors) && apiErrors.length > 0) return apiErrors.join(', ');
+    if (Array.isArray(apiErrors) && apiErrors.length > 0) return (apiErrors as string[]).join(', ');
 
     if (typeof apiErrors === 'object') {
-      const keys = Object.keys(apiErrors);
+      const keys = Object.keys(apiErrors as object);
       if (keys.length === 0) return null;
-      return Object.entries(apiErrors)
-        .map(([field, msg]) => Array.isArray(msg) ? `${field}: ${msg.join(', ')}` : `${field}: ${msg}`)
+      return Object.entries(apiErrors as Record<string, unknown>)
+        .map(([field, msg]) => Array.isArray(msg) ? `${field}: ${(msg as string[]).join(', ')}` : `${field}: ${msg}`)
         .join('; ');
     }
 

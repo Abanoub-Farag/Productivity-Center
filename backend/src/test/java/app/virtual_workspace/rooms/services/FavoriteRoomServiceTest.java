@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
 import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.favoriteroom.FavoriteRoomResponseDto;
@@ -47,6 +48,9 @@ public class FavoriteRoomServiceTest {
 
     @Mock
     private FavoriteRoomMapper favoriteRoomMapper;
+
+    @Mock
+    private UserReferenceProvider userReferenceProvider;
 
     @InjectMocks
     private FavoriteRoomService favoriteRoomService;
@@ -77,6 +81,8 @@ public class FavoriteRoomServiceTest {
                 "Main room",
                 LocalDateTime.now()
         );
+
+        org.mockito.Mockito.lenient().when(userReferenceProvider.getReference(any())).thenReturn(sampleUser);
     }
 
     @Nested

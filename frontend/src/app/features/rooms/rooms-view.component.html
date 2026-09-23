@@ -1,10 +1,8 @@
 <div class="layout-container">
   <app-sidebar class="layout-sidebar"></app-sidebar>
-  
+
   <div class="layout-main">
-    <app-top-nav 
-      (searchChange)="onSearchChange($event)">
-    </app-top-nav>
+    <app-top-nav (searchChange)="onSearchChange($event)"></app-top-nav>
 
     <main class="content-area">
       <div class="hero-section">
@@ -13,55 +11,74 @@
 
       <div class="filter-section">
         <div class="tabs">
-          <button 
-            *ngFor="let tab of tabs" 
-            class="tab-btn" 
-            [class.active]="activeTab() === tab"
-            (click)="setActiveTab(tab)">
-            {{ tab }}
-          </button>
+          @for (tab of tabs; track tab) {
+            <button
+              class="tab-btn"
+              [class.active]="activeTab() === tab"
+              (click)="setActiveTab(tab)">
+              {{ tab }}
+            </button>
+          }
         </div>
       </div>
 
-      <div class="rooms-grid" *ngIf="!facade.isLoading() && !facade.error()">
-        <app-room-card 
-          *ngFor="let room of filteredRooms()" 
-          [room]="room"
-          (onAction)="onRoomAction($event)"
-          (onToggleFavorite)="onToggleFavorite($event)">
-        </app-room-card>
-      </div>
+      @if (facade.isLoading()) {
+        <div class="empty-state">
+          <p>Loading rooms...</p>
+        </div>
+      } @else if (facade.error()) {
+        <div class="empty-state error">
+          <p>{{ facade.error() }}</p>
+        </div>
+      } @else if (filteredRooms().length === 0) {
+        <div class="empty-state">
+          @if (activeTab() === 'Favorites') {
+            <p>No favorite rooms added yet. Click the heart icon on any room to add it to your favorites!</p>
+          } @else {
+            <p>No rooms match your search criteria.</p>
+          }
+        </div>
+      } @else {
+        <div class="rooms-grid">
+          @for (room of filteredRooms(); track room.id) {
+            <app-room-card
+              [room]="room"
+              [currentUserId]="facade.currentUserId()"
+              (onAction)="onRoomAction($event)"
+              (onToggleFavorite)="onToggleFavorite($event)"
+              (onEdit)="onEditRoom($event)">
+            </app-room-card>
+          }
+        </div>
 
-      <div class="pagination-controls" *ngIf="activeTab() === 'Favorites' && !facade.isLoading() && !facade.error() && filteredRooms().length > 0">
-        <button 
-          type="button"
-          class="page-btn" 
-          [disabled]="facade.favIsFirst()" 
-          (click)="facade.loadFavorites(facade.favPage() - 1)">
-          Previous
-        </button>
-        <span class="page-info">Page {{ facade.favPage() + 1 }} of {{ facade.favTotalPages() }}</span>
-        <button 
-          type="button"
-          class="page-btn" 
-          [disabled]="facade.favIsLast()" 
-          (click)="facade.loadFavorites(facade.favPage() + 1)">
-          Next
-        </button>
-      </div>
-      
-      <div class="empty-state" *ngIf="facade.isLoading()">
-        <p>Loading rooms...</p>
-      </div>
-
-      <div class="empty-state error" *ngIf="facade.error()">
-        <p>{{ facade.error() }}</p>
-      </div>
-
-      <div class="empty-state" *ngIf="!facade.isLoading() && !facade.error() && filteredRooms().length === 0">
-        <p *ngIf="activeTab() === 'Favorites'">No favorite rooms added yet. Click the heart icon on any room to add it to your favorites!</p>
-        <p *ngIf="activeTab() !== 'Favorites'">No rooms match your search criteria.</p>
-      </div>
+        @if (activeTab() === 'Favorites') {
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              [disabled]="facade.favIsFirst()"
+              (click)="facade.loadFavorites(facade.favPage() - 1)">
+              Previous
+            </button>
+            <span class="page-info">Page {{ facade.favPage() + 1 }} of {{ facade.favTotalPages() }}</span>
+            <button
+              type="button"
+              class="page-btn"
+              [disabled]="facade.favIsLast()"
+              (click)="facade.loadFavorites(facade.favPage() + 1)">
+              Next
+            </button>
+          </div>
+        }
+      }
     </main>
   </div>
 </div>
+
+@if (editingRoom()) {
+  <app-edit-room-modal
+    [room]="editingRoom()!"
+    (onSave)="onSaveRoom($event)"
+    (onClose)="onCloseModal()">
+  </app-edit-room-modal>
+}

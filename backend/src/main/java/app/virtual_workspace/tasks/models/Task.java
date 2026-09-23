@@ -55,10 +55,10 @@ public class Task {
         private LocalDateTime updatedAt;
 
         @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id")
+        @JoinColumn(name = "user_id", nullable = false)
         private User user;
 
-        @Column(name = "user_id", insertable = false, updatable = false)
+        @Column(name = "user_id", nullable = false, insertable = false, updatable = false)
         private Long userId;
 
 }

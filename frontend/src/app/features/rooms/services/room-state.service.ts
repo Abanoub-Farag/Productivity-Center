@@ -248,7 +248,11 @@ export class RoomDetailFacade {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.tasks.set(response.data?.content ?? []);
+          const list = (response.data?.content ?? []).map((t) => ({
+            ...t,
+            isCompleted: t.isCompleted ?? t.completed ?? false,
+          }));
+          this.tasks.set(list);
           this.isTasksLoading.set(false);
         },
         error: (err: HttpErrorResponse) => {
@@ -260,14 +264,20 @@ export class RoomDetailFacade {
   }
 
   toggleTask(task: TaskData): void {
-    const updatedStatus = !task.isCompleted;
+    const currentCompleted = task.isCompleted ?? task.completed ?? false;
+    const updatedStatus = !currentCompleted;
     this.updatingTaskId.set(task.id);
     this.taskUpdateError.set(null);
     this.tasks.update((list) =>
-      list.map((t) => (t.id === task.id ? { ...t, isCompleted: updatedStatus } : t)),
+      list.map((t) =>
+        t.id === task.id ? { ...t, isCompleted: updatedStatus, completed: updatedStatus } : t
+      ),
     );
 
-    const payload: UpdateTaskRequest = { title: task.title, completed: updatedStatus };
+    const payload: UpdateTaskRequest = {
+      title: task.title,
+      isCompleted: updatedStatus,
+    };
     this.taskService.updateTask(task.id, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -277,7 +287,9 @@ export class RoomDetailFacade {
           this.taskUpdateError.set('Failed to update task status.');
           this.updatingTaskId.set(null);
           this.tasks.update((list) =>
-            list.map((t) => (t.id === task.id ? { ...t, isCompleted: task.isCompleted } : t)),
+            list.map((t) =>
+              t.id === task.id ? { ...t, isCompleted: currentCompleted, completed: currentCompleted } : t
+            ),
           );
         },
       });
@@ -309,7 +321,10 @@ export class RoomDetailFacade {
     );
     this.editingTaskId.set(null);
 
-    const payload: UpdateTaskRequest = { title: newTitle, completed: task.isCompleted };
+    const payload: UpdateTaskRequest = {
+      title: newTitle,
+      isCompleted: task.isCompleted ?? task.completed ?? false,
+    };
     this.taskService.updateTask(task.id, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -341,13 +356,20 @@ export class RoomDetailFacade {
   setNewTaskText(text: string): void { this.newTaskText.set(text); }
 
   deleteTask(taskId: number): void {
+    this.updatingTaskId.set(taskId);
+    this.taskUpdateError.set(null);
     this.taskService.deleteTask(taskId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () =>
-          this.tasks.update((list) => list.filter((t) => t.id !== taskId)),
-        error: (err: HttpErrorResponse) =>
-          console.error('Failed to delete task', err),
+        next: () => {
+          this.tasks.update((list) => list.filter((t) => t.id !== taskId));
+          this.updatingTaskId.set(null);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Failed to delete task', err);
+          this.taskUpdateError.set('Failed to delete task.');
+          this.updatingTaskId.set(null);
+        },
       });
   }
 

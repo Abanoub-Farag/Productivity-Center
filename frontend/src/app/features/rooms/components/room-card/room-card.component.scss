@@ -43,6 +43,13 @@ $status-idle: #6b7280;
     align-items: flex-start;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
   &__title-wrapper {
     display: flex;
     align-items: center;
@@ -184,6 +191,29 @@ $status-idle: #6b7280;
   .favorite-icon {
     width: 20px;
     height: 20px;
+  }
+}
+
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: $text-secondary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($_accent-hex, 0.12);
+    color: $_accent-hex;
+  }
+
+  .edit-icon {
+    width: 16px;
+    height: 16px;
   }
 }
 

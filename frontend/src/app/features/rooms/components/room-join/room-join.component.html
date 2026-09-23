@@ -1,45 +1,54 @@
 <div class="join-container">
-  
-  <div class="input-group" *ngIf="roomId === undefined || roomId === null">
-    <input 
-      type="text"
-      class="room-input" 
-      placeholder="Enter Room ID (e.g. 101)"
-      [value]="manualRoomId()"
-      (input)="manualRoomId.set($any($event.target).value)"
-      [disabled]="joinState() === 'loading'"
-      aria-label="Room ID input"
-    />
-    <button 
-      type="button"
-      class="join-btn" 
-      [disabled]="joinState() === 'loading'"
-      (click)="joinRoom()">
-      <span *ngIf="joinState() === 'loading'" class="spinner"></span>
-      <span>{{ joinState() === 'loading' ? 'Joining...' : 'Join Room' }}</span>
-    </button>
-  </div>
 
-  <div *ngIf="roomId !== undefined && roomId !== null">
-    <button 
-      type="button"
-      class="join-btn" 
-      [disabled]="joinState() === 'loading'"
-      (click)="joinRoom()">
-      <span *ngIf="joinState() === 'loading'" class="spinner"></span>
-      <span>{{ joinState() === 'loading' ? 'Joining...' : 'Join Room' }}</span>
-    </button>
-  </div>
+  @if (roomId() === undefined || roomId() === null) {
+    <div class="input-group">
+      <input
+        type="text"
+        class="room-input"
+        placeholder="Enter Room ID (e.g. 101)"
+        [value]="manualRoomId()"
+        (input)="manualRoomId.set($any($event.target).value)"
+        [disabled]="joinState() === 'loading'"
+        aria-label="Room ID input"
+      />
+      <button
+        type="button"
+        class="join-btn"
+        [disabled]="joinState() === 'loading'"
+        (click)="joinRoom()">
+        @if (joinState() === 'loading') {
+          <span class="spinner"></span>
+        }
+        <span>{{ joinState() === 'loading' ? 'Joining...' : 'Join Room' }}</span>
+      </button>
+    </div>
+  } @else {
+    <div>
+      <button
+        type="button"
+        class="join-btn"
+        [disabled]="joinState() === 'loading'"
+        (click)="joinRoom()">
+        @if (joinState() === 'loading') {
+          <span class="spinner"></span>
+        }
+        <span>{{ joinState() === 'loading' ? 'Joining...' : 'Join Room' }}</span>
+      </button>
+    </div>
+  }
 
-  <div *ngIf="joinState() === 'success'" class="alert alert-success" role="alert">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-    <span>{{ successMessage() }}</span>
-  </div>
+  @if (joinState() === 'success') {
+    <div class="alert alert-success" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
 
-  <div *ngIf="joinState() === 'error'" class="alert alert-error" role="alert">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-    <span>{{ errorMessage() }}</span>
-  </div>
+  @if (joinState() === 'error') {
+    <div class="alert alert-error" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
 
 </div>
-

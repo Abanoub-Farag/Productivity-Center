@@ -322,7 +322,7 @@ public class TaskServiceTest {
         @Test
         @DisplayName("Should delete task when task exists")
         void deleteTask_shouldDeleteTask_whenTaskExists() {
-            when(taskRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(true);
+            when(taskRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(1L);
 
             taskService.deleteTask(1L, 10L);
 
@@ -332,7 +332,7 @@ public class TaskServiceTest {
         @Test
         @DisplayName("Should throw ResourceNotFoundException when task does not exist")
         void deleteTask_shouldThrowResourceNotFoundException_whenTaskDoesNotExist() {
-            when(taskRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(false);
+            when(taskRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(0L);
 
             assertThatThrownBy(() -> taskService.deleteTask(1L, 999L))
                     .isInstanceOf(ResourceNotFoundException.class)
@@ -347,7 +347,7 @@ public class TaskServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE, Long.MIN_VALUE};
 
             for (long id : boundaryIds) {
-                when(taskRepository.deleteByIdAndUserId(id, 1L)).thenReturn(true);
+                when(taskRepository.deleteByIdAndUserId(id, 1L)).thenReturn(1L);
 
                 taskService.deleteTask(1L, id);
 

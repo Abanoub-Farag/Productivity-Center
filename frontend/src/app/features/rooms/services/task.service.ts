@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiResponse } from '../../../core/models/auth.models';
@@ -27,17 +28,42 @@ export class TaskService {
     return this.http.get<ApiResponse<PageableTaskResponse>>(this.baseUrl, {
       headers: this.authHeaders,
       params,
-    });
+    }).pipe(
+      map((res) => {
+        if (res.data?.content) {
+          res.data.content = res.data.content.map((task) => ({
+            ...task,
+            isCompleted: task.isCompleted ?? task.completed ?? false,
+          }));
+        }
+        return res;
+      })
+    );
   }
 
   createTask(data: { title: string; isCompleted: boolean }): Observable<ApiResponse<TaskData>> {
     return this.http.post<ApiResponse<TaskData>>(this.baseUrl, data, {
       headers: this.authHeaders,
-    });
+    }).pipe(
+      map((res) => {
+        if (res.data) {
+          res.data = {
+            ...res.data,
+            isCompleted: res.data.isCompleted ?? res.data.completed ?? false,
+          };
+        }
+        return res;
+      })
+    );
   }
 
   updateTask(taskId: number, data: UpdateTaskRequest): Observable<ApiResponse<TaskData>> {
-    return this.http.put<ApiResponse<TaskData>>(`${this.baseUrl}/${taskId}`, data, {
+    const payload: { title?: string; isCompleted?: boolean } = {
+      ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.isCompleted !== undefined ? { isCompleted: data.isCompleted } : {}),
+    };
+
+    return this.http.put<ApiResponse<TaskData>>(`${this.baseUrl}/${taskId}`, payload, {
       headers: this.authHeaders,
     });
   }

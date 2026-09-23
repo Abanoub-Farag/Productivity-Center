@@ -21,5 +21,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Optional<Task> findByIdAndUserId(Long id, Long userId);
 
-    Boolean deleteByIdAndUserId(Long id, Long userId);
+    long deleteByIdAndUserId(Long id, Long userId);
 }

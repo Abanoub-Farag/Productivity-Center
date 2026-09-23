@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { TopNavComponent } from '../components/top-nav/top-nav.component';
 import { RoomsDataService } from '../services/rooms-data.service';
@@ -33,14 +34,14 @@ export class CreateRoomComponent {
   readonly GlobeIcon = Globe;
   readonly ShieldIcon = Shield;
 
-  createRoomForm: FormGroup = this.fb.group({
+  readonly createRoomForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     description: [''],
     visibility: ['PUBLIC', [Validators.required]],
   });
 
-  isSubmitting = signal<boolean>(false);
-  error = signal<string | null>(null);
+  readonly isSubmitting = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
 
   onSubmit(): void {
     if (this.createRoomForm.invalid) {
@@ -58,9 +59,12 @@ export class CreateRoomComponent {
         this.isSubmitting.set(false);
         this.facade.handleRoomCreated(response.data?.id);
       },
-      error: (err: unknown) => {
+      error: (err: HttpErrorResponse) => {
+        const msg =
+          (err.error?.message as string | undefined) ??
+          'Failed to create the room. Please try again.';
         console.error('Error creating room', err);
-        this.error.set('Failed to create the room. Please try again.');
+        this.error.set(msg);
         this.isSubmitting.set(false);
       },
     });

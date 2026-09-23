@@ -78,6 +78,7 @@ export interface Room {
   isFavorite?: boolean;
   addedAt?: string;
   isPendingFavorite?: boolean;
+  ownerId?: number;
 }
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
@@ -86,13 +87,14 @@ export interface TaskData {
   id: number;
   title: string;
   isCompleted: boolean;
+  completed?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface UpdateTaskRequest {
   title?: string;
-  completed?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface PageableTaskResponse {

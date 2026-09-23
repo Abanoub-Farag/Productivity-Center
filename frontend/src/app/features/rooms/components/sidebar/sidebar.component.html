@@ -29,9 +29,9 @@
   </div>
 
   <nav class="sidebar__nav">
+    @for (item of navItems; track item.label) {
     <a [routerLink]="item.route ? item.route : null"
-       class="nav-item" 
-       *ngFor="let item of navItems" 
+       class="nav-item"
        [routerLinkActive]="item.route ? 'active' : ''"
        [routerLinkActiveOptions]="{exact: false}"
        [class.active]="item.active"
@@ -40,6 +40,7 @@
       <lucide-icon [img]="item.icon" class="nav-icon"></lucide-icon>
       <span class="nav-label">{{ item.label }}</span>
     </a>
+    }
   </nav>
 
   <div class="sidebar__footer">

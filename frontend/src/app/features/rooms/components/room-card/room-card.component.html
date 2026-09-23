@@ -1,34 +1,51 @@
-<div class="room-card" [class.hover-effect]="true">
+<div class="room-card">
   <div class="room-card__header">
     <div class="room-card__title-wrapper">
       <h3 class="room-card__title">{{ room().title }}</h3>
-      <span class="badge badge--private" *ngIf="room().visibility === 'PRIVATE'" title="Private Room">
-        <lucide-icon [img]="ShieldIcon" class="badge-icon"></lucide-icon>
-        Private
-      </span>
+      @if (room().visibility === 'PRIVATE') {
+        <span class="badge badge--private" title="Private Room">
+          <lucide-icon [img]="ShieldIcon" class="badge-icon"></lucide-icon>
+          Private
+        </span>
+      }
     </div>
-    <button 
-      type="button"
-      class="favorite-btn" 
-      [class.active]="room().isFavorite"
-      [disabled]="room().isPendingFavorite"
-      (click)="toggleFavorite($event)"
-      [attr.aria-label]="room().isFavorite ? 'Remove from favorites' : 'Add to favorites'">
-      <lucide-icon [img]="HeartIcon" class="favorite-icon"></lucide-icon>
-    </button>
+    <div class="room-card__actions">
+      @if (isOwner) {
+        <button
+          type="button"
+          class="edit-btn"
+          (click)="editRoom($event)"
+          aria-label="Edit room">
+          <lucide-icon [img]="PencilIcon" class="edit-icon"></lucide-icon>
+        </button>
+      }
+      <button
+        type="button"
+        class="favorite-btn"
+        [class.active]="room().isFavorite"
+        [disabled]="room().isPendingFavorite"
+        (click)="toggleFavorite($event)"
+        [attr.aria-label]="room().isFavorite ? 'Remove from favorites' : 'Add to favorites'">
+        <lucide-icon [img]="HeartIcon" class="favorite-icon"></lucide-icon>
+      </button>
+    </div>
   </div>
 
   <div class="room-card__body">
     <p class="room-card__description">{{ room().description }}</p>
     <div class="room-card__tags">
-      <span class="tag" *ngFor="let tag of room().tags">#{{ tag }}</span>
+      @for (tag of room().tags; track tag) {
+        <span class="tag">#{{ tag }}</span>
+      }
     </div>
-    <span *ngIf="room().addedAt" class="added-at">Added: {{ room().addedAt | date:'mediumDate' }}</span>
+    @if (room().addedAt) {
+      <span class="added-at">Added: {{ room().addedAt | date:'mediumDate' }}</span>
+    }
   </div>
 
   <div class="room-card__footer">
-    <button 
-      class="btn" 
+    <button
+      class="btn"
       [ngClass]="room().actionType === 'join' ? 'btn--primary' : 'btn--outline'"
       (click)="handleAction()">
       {{ room().actionType === 'join' ? 'Join Room' : 'View Room' }}

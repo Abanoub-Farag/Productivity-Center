@@ -57,91 +57,99 @@
   </div><!-- /session-main -->
 
   <!-- ═══ Edit Room Modal ═════════════════════════════════════════════════ -->
-  <div class="modal-overlay" *ngIf="roomState.isEditRoomModalOpen()" (click)="closeEditRoomModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Edit Room Details</h2>
-        <button type="button" class="icon-btn close-modal-btn" (click)="closeEditRoomModal()" aria-label="Close modal">
-          <lucide-icon [img]="XIcon" class="btn-icon"></lucide-icon>
-        </button>
+  @if (roomState.isEditRoomModalOpen()) {
+    <div class="modal-overlay" (click)="closeEditRoomModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Edit Room Details</h2>
+          <button type="button" class="icon-btn close-modal-btn" (click)="closeEditRoomModal()" aria-label="Close modal">
+            <lucide-icon [img]="XIcon" class="btn-icon"></lucide-icon>
+          </button>
+        </div>
+        <form (submit)="$event.preventDefault(); submitUpdateRoom()" class="modal-form">
+          <div class="form-group">
+            <label for="edit-room-title">Room Title</label>
+            <input
+              id="edit-room-title"
+              type="text"
+              class="form-control"
+              [value]="roomState.editRoomTitle()"
+              (input)="onEditRoomTitleInput($event)"
+              placeholder="Enter room title"
+              required
+              maxlength="50"
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-room-description">Description</label>
+            <textarea
+              id="edit-room-description"
+              class="form-control textarea"
+              [value]="roomState.editRoomDescription()"
+              (input)="onEditRoomDescriptionInput($event)"
+              placeholder="Enter room description"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-room-visibility">Visibility</label>
+            <select
+              id="edit-room-visibility"
+              class="form-control"
+              [ngModel]="roomState.editRoomVisibility()"
+              (ngModelChange)="roomState.setEditRoomVisibility($event)"
+              name="visibility"
+            >
+              <option value="PUBLIC">Public</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+          </div>
+          @if (roomState.roomUpdateError()) {
+            <div class="modal-error">
+              <p>{{ roomState.roomUpdateError() }}</p>
+            </div>
+          }
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditRoomModal()" [disabled]="roomState.isUpdatingRoom()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="roomState.isUpdatingRoom()">
+              {{ roomState.isUpdatingRoom() ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
       </div>
-      <form (submit)="$event.preventDefault(); submitUpdateRoom()" class="modal-form">
-        <div class="form-group">
-          <label for="edit-room-title">Room Title</label>
-          <input
-            id="edit-room-title"
-            type="text"
-            class="form-control"
-            [value]="roomState.editRoomTitle()"
-            (input)="onEditRoomTitleInput($event)"
-            placeholder="Enter room title"
-            required
-            maxlength="50"
-          />
-        </div>
-        <div class="form-group">
-          <label for="edit-room-description">Description</label>
-          <textarea
-            id="edit-room-description"
-            class="form-control textarea"
-            [value]="roomState.editRoomDescription()"
-            (input)="onEditRoomDescriptionInput($event)"
-            placeholder="Enter room description"
-            rows="3"
-          ></textarea>
-        </div>
-        <div class="form-group">
-          <label for="edit-room-visibility">Visibility</label>
-          <select 
-            id="edit-room-visibility"
-            class="form-control"
-            [ngModel]="roomState.editRoomVisibility()"
-            (ngModelChange)="roomState.setEditRoomVisibility($event)"
-            name="visibility"
-          >
-            <option value="PUBLIC">Public</option>
-            <option value="PRIVATE">Private</option>
-          </select>
-        </div>
-        <div class="modal-error" *ngIf="roomState.roomUpdateError()">
-          <p>{{ roomState.roomUpdateError() }}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeEditRoomModal()" [disabled]="roomState.isUpdatingRoom()">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="roomState.isUpdatingRoom()">
-            {{ roomState.isUpdatingRoom() ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </div>
-      </form>
     </div>
-  </div>
+  }
 
   <!-- ═══ Delete Room Confirmation Modal ══════════════════════════════════ -->
-  <div class="modal-overlay" *ngIf="roomState.isDeleteRoomModalOpen()" (click)="closeDeleteRoomModal()">
-    <div class="modal-card modal-card--danger" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Delete Room</h2>
-        <button type="button" class="icon-btn close-modal-btn" (click)="closeDeleteRoomModal()" aria-label="Close modal">
-          <lucide-icon [img]="XIcon" class="btn-icon"></lucide-icon>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete <strong>"{{ roomState.room()?.title }}"</strong>? This action cannot be undone.</p>
-        <div class="modal-error" *ngIf="roomState.roomDeleteError()">
-          <p>{{ roomState.roomDeleteError() }}</p>
+  @if (roomState.isDeleteRoomModalOpen()) {
+    <div class="modal-overlay" (click)="closeDeleteRoomModal()">
+      <div class="modal-card modal-card--danger" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Delete Room</h2>
+          <button type="button" class="icon-btn close-modal-btn" (click)="closeDeleteRoomModal()" aria-label="Close modal">
+            <lucide-icon [img]="XIcon" class="btn-icon"></lucide-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete <strong>"{{ roomState.room()?.title }}"</strong>? This action cannot be undone.</p>
+          @if (roomState.roomDeleteError()) {
+            <div class="modal-error">
+              <p>{{ roomState.roomDeleteError() }}</p>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeDeleteRoomModal()" [disabled]="roomState.isDeletingRoom()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmDeleteRoom()" [disabled]="roomState.isDeletingRoom()">
+            {{ roomState.isDeletingRoom() ? 'Deleting...' : 'Delete Room' }}
+          </button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeDeleteRoomModal()" [disabled]="roomState.isDeletingRoom()">
-          Cancel
-        </button>
-        <button type="button" class="btn btn-danger" (click)="confirmDeleteRoom()" [disabled]="roomState.isDeletingRoom()">
-          {{ roomState.isDeletingRoom() ? 'Deleting...' : 'Delete Room' }}
-        </button>
-      </div>
     </div>
-  </div>
+  }
 
 </div>

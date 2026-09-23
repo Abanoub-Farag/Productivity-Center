@@ -1,0 +1,80 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+
+    <!-- Header -->
+    <div class="modal__header">
+      <h2 id="edit-modal-title" class="modal__title">Edit Room</h2>
+      <button type="button" class="modal__close-btn" (click)="close()" aria-label="Close">
+        <lucide-icon [img]="XIcon"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal__body">
+
+      <!-- Title -->
+      <div class="field">
+        <label class="field__label" for="edit-room-title">Room Name</label>
+        <input
+          id="edit-room-title"
+          type="text"
+          class="field__input"
+          placeholder="Enter room name..."
+          [value]="title()"
+          (input)="title.set($any($event.target).value)"
+          maxlength="100" />
+      </div>
+
+      <!-- Description -->
+      <div class="field">
+        <label class="field__label" for="edit-room-description">Description</label>
+        <textarea
+          id="edit-room-description"
+          class="field__input field__textarea"
+          placeholder="Describe what this room is about..."
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+          rows="4"
+          maxlength="500"></textarea>
+      </div>
+
+      <!-- Visibility toggle -->
+      <div class="field">
+        <label class="field__label">Visibility</label>
+        <button
+          type="button"
+          class="visibility-toggle"
+          [class.visibility-toggle--private]="visibility() === 'PRIVATE'"
+          (click)="toggleVisibility()">
+          <lucide-icon
+            [img]="visibility() === 'PUBLIC' ? GlobeIcon : LockIcon"
+            class="visibility-toggle__icon">
+          </lucide-icon>
+          <span class="visibility-toggle__label">
+            {{ visibility() === 'PUBLIC' ? 'Public' : 'Private' }}
+          </span>
+          <span class="visibility-toggle__hint">
+            {{ visibility() === 'PUBLIC'
+              ? 'Anyone can discover and join this room'
+              : 'Only invited members can join' }}
+          </span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" (click)="close()">Cancel</button>
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="isSaving() || !title().trim() || !description().trim()"
+        (click)="submit()">
+        <lucide-icon [img]="SaveIcon" class="btn__icon"></lucide-icon>
+        {{ isSaving() ? 'Saving…' : 'Save Changes' }}
+      </button>
+    </div>
+
+  </div>
+</div>

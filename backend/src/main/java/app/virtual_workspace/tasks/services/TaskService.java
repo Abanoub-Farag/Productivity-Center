@@ -5,6 +5,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.tasks.dtos.CreateTaskDto;
 import app.virtual_workspace.tasks.dtos.TaskResponseDto;
@@ -20,6 +21,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final UserReferenceProvider userReferenceProvider;
 
     @Transactional(readOnly = true)
     public Slice<TaskResponseDto> getAllTasks(Long userId, Pageable pageable) {
@@ -30,7 +32,7 @@ public class TaskService {
     @Transactional
     public TaskResponseDto createTask(Long userId, CreateTaskDto taskRequest) {
         Task task = taskMapper.toModel(taskRequest);
-        task.setUserId(userId);
+        task.setUser(userReferenceProvider.getReference(userId));
         Task newTask = taskRepository.save(task);
         return taskMapper.taskResponseDto(newTask);
     }
@@ -52,8 +54,8 @@ public class TaskService {
 
     @Transactional
     public void deleteTask(Long userId, Long taskId) {
-        Boolean deleted = taskRepository.deleteByIdAndUserId(taskId, userId);
-        if (!deleted) {
+        long deleted = taskRepository.deleteByIdAndUserId(taskId, userId);
+        if (deleted == 0) {
             throw new ResourceNotFoundException("Task with id: " + taskId + " not found");
         }
     }

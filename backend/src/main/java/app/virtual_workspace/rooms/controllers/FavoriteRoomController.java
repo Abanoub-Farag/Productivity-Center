@@ -25,48 +25,50 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/rooms/favorites")
 public class FavoriteRoomController {
 
-    private final FavoriteRoomService favoriteRoomService;
+        private final FavoriteRoomService favoriteRoomService;
 
-    @GetMapping("")
-    public ResponseEntity<ApiResponse<Slice<FavoriteRoomResponseDto>>> getFavoriteRooms(
-            @PageableDefault(size = 10, sort = "addedAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        @GetMapping("")
+        public ResponseEntity<ApiResponse<Slice<FavoriteRoomResponseDto>>> getFavoriteRooms(
+                        @PageableDefault(size = 10, sort = "addedAt", direction = Sort.Direction.DESC) Pageable pageable,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        Slice<FavoriteRoomResponseDto> favoriteRooms = favoriteRoomService.getFavoriteRooms(userPrincipal.getId(),
-                pageable);
-        ApiResponse<Slice<FavoriteRoomResponseDto>> response = ApiResponse.<Slice<FavoriteRoomResponseDto>>builder()
-                .status(HttpStatus.OK.value())
-                .message("Returned Favorite Rooms Successfully")
-                .data(favoriteRooms)
-                .build();
-        return ResponseEntity.ok().body(response);
-    }
+                Slice<FavoriteRoomResponseDto> favoriteRooms = favoriteRoomService.getFavoriteRooms(
+                                userPrincipal.getId(),
+                                pageable);
+                ApiResponse<Slice<FavoriteRoomResponseDto>> response = ApiResponse
+                                .<Slice<FavoriteRoomResponseDto>>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Returned Favorite Rooms Successfully")
+                                .data(favoriteRooms)
+                                .build();
+                return ResponseEntity.ok().body(response);
+        }
 
-    @PostMapping("/{roomId}")
-    public ResponseEntity<ApiResponse<Void>> addRoomToFavorite(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        favoriteRoomService.addRoomToFavorite(userPrincipal.getId(), roomId);
+        @PostMapping("/{roomId}")
+        public ResponseEntity<ApiResponse<Void>> addRoomToFavorite(
+                        @PathVariable Long roomId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                favoriteRoomService.addRoomToFavorite(userPrincipal.getId(), roomId);
 
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
-                .message("Added room to favorites successfully")
-                .build();
+                ApiResponse<Void> response = ApiResponse.<Void>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Added room to favorites successfully")
+                                .build();
 
-        return ResponseEntity.ok().body(response);
-    }
+                return ResponseEntity.ok().body(response);
+        }
 
-    @DeleteMapping("/{roomId}")
-    public ResponseEntity<ApiResponse<Void>> removeRoomFromFavorite(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        favoriteRoomService.removeRoomFromFavorite(userPrincipal.getId(), roomId);
+        @DeleteMapping("/{roomId}")
+        public ResponseEntity<ApiResponse<Void>> removeRoomFromFavorite(
+                        @PathVariable Long roomId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                favoriteRoomService.removeRoomFromFavorite(userPrincipal.getId(), roomId);
 
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
-                .message("Removed room from favorites successfully")
-                .build();
+                ApiResponse<Void> response = ApiResponse.<Void>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Removed room from favorites successfully")
+                                .build();
 
-        return ResponseEntity.ok().body(response);
-    }
+                return ResponseEntity.ok().body(response);
+        }
 }

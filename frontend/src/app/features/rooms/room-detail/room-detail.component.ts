@@ -7,28 +7,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {
-  LucideAngularModule,
-  ArrowLeft,
-  Bell,
-  Clock,
-  RotateCcw,
-  Play,
-  Pause,
-  Settings,
-  Plus,
-  CheckCircle2,
-  Circle,
-  HelpCircle,
-  ClipboardList,
-  Trash2,
-  Heart,
-  Pencil,
-  Check,
-  X,
-  Shield,
-  Lock,
-} from 'lucide-angular';
+import { LucideAngularModule, X } from 'lucide-angular';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { RoomTimerComponent } from '../components/room-timer/room-timer.component';
 import { RoomMembersListComponent } from '../components/room-members-list/room-members-list.component';
@@ -62,26 +41,8 @@ export class RoomDetailComponent implements OnInit {
   /** Expose facade publicly so template can access signals directly. */
   readonly roomState = inject(RoomDetailFacade);
 
-  // ── Lucide icons ───────────────────────────────────────────────────────────
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly BellIcon = Bell;
-  readonly ClockIcon = Clock;
-  readonly RotateCcwIcon = RotateCcw;
-  readonly PlayIcon = Play;
-  readonly PauseIcon = Pause;
-  readonly SettingsIcon = Settings;
-  readonly PlusIcon = Plus;
-  readonly CheckCircle2Icon = CheckCircle2;
-  readonly CircleIcon = Circle;
-  readonly HelpCircleIcon = HelpCircle;
-  readonly CheckSquareIcon = ClipboardList;
-  readonly Trash2Icon = Trash2;
-  readonly HeartIcon = Heart;
-  readonly PencilIcon = Pencil;
-  readonly CheckIcon = Check;
+  // ── Only icons used directly in this template (modals) ─────────────────────
   readonly XIcon = X;
-  readonly ShieldIcon = Shield;
-  readonly LockIcon = Lock;
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');

@@ -5,7 +5,9 @@
     </a>
     <div class="header-room-info">
       <h1 class="header-room-title">
-        <lucide-icon *ngIf="room()?.visibility === 'PRIVATE'" [img]="LockIcon" class="title-lock-icon" title="Private Room"></lucide-icon>
+        @if (room()?.visibility === 'PRIVATE') {
+          <lucide-icon [img]="LockIcon" class="title-lock-icon" title="Private Room"></lucide-icon>
+        }
         {{ room()?.title || 'Design Critiques Session' }}
       </h1>
       <span class="live-badge" [class.retrying]="heartbeatStatus() === 'retrying'" [class.failed]="heartbeatStatus() === 'failed'">
@@ -15,31 +17,31 @@
     </div>
   </div>
   <div class="header-right">
-    <button 
-      type="button" 
-      class="icon-btn favorite-btn" 
-      [class.active]="isFavorite()" 
+    <button
+      type="button"
+      class="icon-btn favorite-btn"
+      [class.active]="isFavorite()"
       [disabled]="isPendingFavorite()"
       (click)="toggleFavorite.emit()"
       [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'">
       <lucide-icon [img]="HeartIcon" class="btn-icon"></lucide-icon>
     </button>
-    <button
-      *ngIf="isOwner()"
-      type="button"
-      class="icon-btn edit-room-btn"
-      (click)="editRoom.emit()"
-      aria-label="Edit Room">
-      <lucide-icon [img]="PencilIcon" class="btn-icon"></lucide-icon>
-    </button>
-    <button
-      *ngIf="isOwner()"
-      type="button"
-      class="icon-btn delete-room-btn"
-      (click)="deleteRoom.emit()"
-      aria-label="Delete Room">
-      <lucide-icon [img]="Trash2Icon" class="btn-icon"></lucide-icon>
-    </button>
+    @if (isOwner()) {
+      <button
+        type="button"
+        class="icon-btn edit-room-btn"
+        (click)="editRoom.emit()"
+        aria-label="Edit Room">
+        <lucide-icon [img]="PencilIcon" class="btn-icon"></lucide-icon>
+      </button>
+      <button
+        type="button"
+        class="icon-btn delete-room-btn"
+        (click)="deleteRoom.emit()"
+        aria-label="Delete Room">
+        <lucide-icon [img]="Trash2Icon" class="btn-icon"></lucide-icon>
+      </button>
+    }
     <button class="icon-btn notification-btn" id="notification-btn" aria-label="Notifications">
       <lucide-icon [img]="BellIcon" class="btn-icon"></lucide-icon>
       <span class="notification-dot"></span>

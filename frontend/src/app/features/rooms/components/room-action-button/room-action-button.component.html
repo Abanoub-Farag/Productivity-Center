@@ -1,35 +1,30 @@
-<div class="room-action-container" *ngIf="!isAlreadyInRoom()">
-  <!-- Loading Skeleton State -->
-  <button 
-    *ngIf="authService.isLoadingUser()" 
-    class="btn btn--primary btn--loading" 
-    disabled
-    type="button"
-    aria-label="Loading user room details">
-    <span class="skeleton-spinner"></span>
-    <span class="skeleton-text">Loading...</span>
-  </button>
-
-  <!-- Authenticated User Action Button -->
-  <ng-container *ngIf="!authService.isLoadingUser()">
-    <!-- Join Your Room if roomsId exists and userData.roomsId.length > 0 -->
-    <button 
-      *ngIf="userRoomId() !== null" 
-      class="btn btn--primary btn--join" 
-      type="button"
-      (click)="onActionClick()">
-      <lucide-icon [img]="LogInIcon" class="btn-icon"></lucide-icon>
-      Join Your Room
-    </button>
-
-    <!-- Create Room if roomsId is empty or null -->
-    <button 
-      *ngIf="userRoomId() === null" 
-      class="btn btn--primary btn--create" 
-      type="button"
-      (click)="onActionClick()">
-      <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
-      Create Room
-    </button>
-  </ng-container>
-</div>
+@if (!isAlreadyInRoom()) {
+  <div class="room-action-container">
+    @if (authService.isLoadingUser()) {
+      <button
+        class="btn btn--primary btn--loading"
+        disabled
+        type="button"
+        aria-label="Loading user room details">
+        <span class="skeleton-spinner"></span>
+        <span class="skeleton-text">Loading...</span>
+      </button>
+    } @else if (userRoomId() !== null) {
+      <button
+        class="btn btn--primary btn--join"
+        type="button"
+        (click)="onActionClick()">
+        <lucide-icon [img]="LogInIcon" class="btn-icon"></lucide-icon>
+        Join Your Room
+      </button>
+    } @else {
+      <button
+        class="btn btn--primary btn--create"
+        type="button"
+        (click)="onActionClick()">
+        <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
+        Create Room
+      </button>
+    }
+  </div>
+}

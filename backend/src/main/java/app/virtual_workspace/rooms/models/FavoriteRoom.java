@@ -37,21 +37,28 @@ public class FavoriteRoom {
         private Long id;
 
         @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id")
+        @JoinColumn(name = "user_id", nullable = false)
         private User user;
 
-        @Column(name = "user_id", insertable = false, updatable = false)
+        @Column(name = "user_id", nullable = false, insertable = false, updatable = false)
         private Long userId;
 
         @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "room_id")
+        @JoinColumn(name = "room_id", nullable = false)
         private Room room;
 
         @Column(name = "room_id", nullable = false, insertable = false, updatable = false)
         private Long roomId;
 
         @CreationTimestamp
-        @Column(name = "added_at")
+        @Column(name = "added_at", nullable = false)
         private LocalDateTime addedAt;
 
+        public Long getUserId() {
+                return this.userId != null ? this.userId : (this.user != null ? this.user.getId() : null);
+        }
+
+        public Long getRoomId() {
+                return this.roomId != null ? this.roomId : (this.room != null ? this.room.getId() : null);
+        }
 }

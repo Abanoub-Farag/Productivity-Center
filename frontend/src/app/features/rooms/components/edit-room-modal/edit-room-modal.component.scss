@@ -1,0 +1,231 @@
+// ── Design tokens (mirrors rooms-view palette) ──────────────────────────────
+$bg-surface:      #12142a;
+$bg-elevated:     #1a1d35;
+$border-color:    #21253b;
+$primary-accent:  #8a3ffc;
+$primary-hover:   #7328e8;
+$text-primary:    #ffffff;
+$text-secondary:  #9ca3af;
+$danger:          #ef4444;
+
+// ── Backdrop ─────────────────────────────────────────────────────────────────
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  padding: 24px;
+  animation: backdrop-in 0.2s ease;
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Modal panel ───────────────────────────────────────────────────────────────
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: $bg-elevated;
+  border: 1px solid rgba($border-color, 0.8);
+  border-radius: 20px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba($primary-accent, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: modal-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  // ── Header ─────────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__title {
+    color: $text-primary;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 30%, rgba($primary-accent, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  &__close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: rgba($border-color, 0.8);
+      color: $text-primary;
+    }
+
+    lucide-icon { display: flex; width: 18px; height: 18px; }
+  }
+
+  // ── Body ───────────────────────────────────────────────────────────────
+  &__body {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  // ── Footer ─────────────────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 28px 24px;
+    border-top: 1px solid $border-color;
+  }
+}
+
+// ── Form fields ───────────────────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__label {
+    color: $text-secondary;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__input {
+    background: $bg-surface;
+    border: 1px solid $border-color;
+    border-radius: 12px;
+    color: $text-primary;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    font-family: inherit;
+    resize: none;
+
+    &::placeholder { color: rgba($text-secondary, 0.5); }
+
+    &:focus {
+      border-color: $primary-accent;
+      box-shadow: 0 0 0 3px rgba($primary-accent, 0.15);
+    }
+  }
+
+  &__textarea { min-height: 100px; }
+}
+
+// ── Visibility toggle ─────────────────────────────────────────────────────────
+.visibility-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: $bg-surface;
+  border: 1px solid $border-color;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  width: 100%;
+
+  &:hover {
+    border-color: rgba($primary-accent, 0.5);
+    background: rgba($primary-accent, 0.04);
+  }
+
+  &__icon {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    color: $primary-accent;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    color: $text-primary;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  &__hint {
+    color: $text-secondary;
+    font-size: 0.82rem;
+    margin-left: auto;
+  }
+
+  &--private {
+    border-color: rgba(#f59e0b, 0.4);
+    background: rgba(#f59e0b, 0.04);
+
+    .visibility-toggle__icon { color: #f59e0b; }
+    .visibility-toggle__label { color: #f59e0b; }
+  }
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+  font-family: inherit;
+
+  &:active { transform: scale(0.97); }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &__icon { display: flex; width: 16px; height: 16px; }
+
+  &--primary {
+    background: $primary-accent;
+    color: #fff;
+    &:not(:disabled):hover { background: $primary-hover; }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $text-secondary;
+    border: 1px solid $border-color;
+    &:hover { background: rgba($border-color, 0.5); color: $text-primary; }
+  }
+}
