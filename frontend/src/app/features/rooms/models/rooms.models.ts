@@ -31,25 +31,14 @@ export interface PageableResponse {
 }
 
 // ── Favorites ─────────────────────────────────────────────────────────────────
+// Favorite types are owned by favorite-room.models.ts; re-exported here so
+// that existing imports within the rooms module continue to resolve.
 
-export interface FavoriteRoomItem {
-  roomId: number;
-  title: string;
-  description: string;
-  addedAt: string;
-  visibility?: RoomVisibility;
-}
-
-export interface FavoritePageResponse {
-  content: FavoriteRoomItem[];
-  numberOfElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number?: number;
-  totalPages?: number;
-  totalElements?: number;
-}
+export type {
+  FavoriteRoomItem,
+  FavoritePageResponse,
+  AddFavoriteResponse,
+} from './favorite-room.models';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
@@ -82,25 +71,7 @@ export interface Room {
 }
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
+// Task types are owned by the tasks feature module; re-exported here so that
+// existing imports within the rooms module continue to resolve without changes.
 
-export interface TaskData {
-  id: number;
-  title: string;
-  isCompleted: boolean;
-  completed?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface UpdateTaskRequest {
-  title?: string;
-  isCompleted?: boolean;
-}
-
-export interface PageableTaskResponse {
-  content: TaskData[];
-  totalPages?: number;
-  totalElements?: number;
-  first?: boolean;
-  last?: boolean;
-}
+export type { TaskData, UpdateTaskRequest, PageableTaskResponse } from '../../tasks/models/task.models';

@@ -2,8 +2,10 @@ import { Injectable, inject, signal, DestroyRef, computed } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { RoomsDataService } from './rooms-data.service';
+import { FavoriteRoomService } from './favorite-room.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Room, FavoriteRoomItem, RoomData, CreateRoomDto, UpdateRoomDto } from '../models/rooms.models';
 
@@ -12,6 +14,7 @@ type ActiveTab = 'All Rooms' | 'My Teams' | 'Favorites';
 @Injectable()
 export class RoomsFacade {
   private readonly data = inject(RoomsDataService);
+  private readonly favService = inject(FavoriteRoomService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -52,7 +55,7 @@ export class RoomsFacade {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.data.getFavorites(0, 100)
+    this.favService.getFavorites(0, 100)
       .pipe(
         switchMap((res) => {
           const favContent: FavoriteRoomItem[] = res.data?.content ?? [];
@@ -121,7 +124,7 @@ export class RoomsFacade {
   }
 
   loadFavoriteSet(): void {
-    this.data.getFavorites(0, 100)
+    this.favService.getFavorites(0, 100)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -142,7 +145,7 @@ export class RoomsFacade {
     this.error.set(null);
     this.favPage.set(page);
 
-    this.data.getFavorites(page, 20)
+    this.favService.getFavorites(page, 20)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
@@ -158,7 +161,7 @@ export class RoomsFacade {
             description: f.description ?? 'No description provided.',
             tags: ['favorite'],
             actionType: 'join',
-            visibility: f.visibility ?? 'PUBLIC',
+            visibility: 'PUBLIC',
             isFavorite: true,
             addedAt: f.addedAt,
           }));
@@ -196,9 +199,9 @@ export class RoomsFacade {
       ),
     );
 
-    const request$ = targetState
-      ? this.data.addToFavorites(room.id)
-      : this.data.removeFromFavorites(room.id);
+    const request$: Observable<unknown> = targetState
+      ? this.favService.addFavorite(parseInt(room.id, 10))
+      : this.favService.removeFavorite(parseInt(room.id, 10));
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.handleFavoriteSuccess(room.id, targetState),

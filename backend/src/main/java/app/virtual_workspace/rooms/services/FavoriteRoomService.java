@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import app.virtual_workspace.accounts.services.UserReferenceProvider;
+import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.favoriteroom.FavoriteRoomResponseDto;
 import app.virtual_workspace.rooms.mappers.FavoriteRoomMapper;
@@ -32,11 +33,11 @@ public class FavoriteRoomService {
     }
 
     @Transactional
-    public void addRoomToFavorite(Long userId, Long roomId) {
+    public FavoriteRoomResponseDto addRoomToFavorite(Long userId, Long roomId) {
         boolean favoriteRoomExist = favoriteRoomRepository.existsByUserIdAndRoomId(userId, roomId);
 
         if (favoriteRoomExist)
-            return;
+            throw new ResourceAlreadyExistsException("Room with id: " + roomId + " is already in favorited");
 
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("No room found with id: " + roomId));
@@ -46,6 +47,8 @@ public class FavoriteRoomService {
         favoriteRoom.setUser(userReferenceProvider.getReference(userId));
 
         favoriteRoomRepository.save(favoriteRoom);
+
+        return favoriteRoomMapper.modelToFavoriteRoomResponseDto(favoriteRoom);
     }
 
     @Transactional()

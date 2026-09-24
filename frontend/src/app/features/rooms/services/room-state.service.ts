@@ -4,9 +4,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { timer, switchMap, retry, catchError, of, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { RoomsDataService } from './rooms-data.service';
-import { TaskService } from './task.service';
+import { FavoriteRoomService } from './favorite-room.service';
+import { TaskService } from '../../../features/tasks/services/task.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { RoomData, UpdateRoomDto, TaskData, UpdateTaskRequest } from '../models/rooms.models';
+import { RoomData, UpdateRoomDto } from '../models/rooms.models';
+import { TaskData, UpdateTaskRequest } from '../../../features/tasks/models/task.models';
 
 /** Discriminated-union type for heartbeat stream results. */
 type HeartbeatResult =
@@ -17,6 +19,7 @@ type HeartbeatResult =
 @Injectable()
 export class RoomDetailFacade {
   private readonly roomsData = inject(RoomsDataService);
+  private readonly favService = inject(FavoriteRoomService);
   private readonly taskService = inject(TaskService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -77,7 +80,7 @@ export class RoomDetailFacade {
   // ── Room actions ───────────────────────────────────────────────────────────
 
   checkIfFavorite(roomId: number): void {
-    this.roomsData.getFavorites(0, 100)
+    this.favService.getFavorites(0, 100)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -100,9 +103,9 @@ export class RoomDetailFacade {
     this.isFavorite.set(targetState);
     this.isPendingFavorite.set(true);
 
-    const request$ = targetState
-      ? this.roomsData.addToFavorites(roomId)
-      : this.roomsData.removeFromFavorites(roomId);
+    const request$: Observable<unknown> = targetState
+      ? this.favService.addFavorite(roomId)
+      : this.favService.removeFavorite(roomId);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.isPendingFavorite.set(false),
@@ -248,11 +251,8 @@ export class RoomDetailFacade {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          const list = (response.data?.content ?? []).map((t) => ({
-            ...t,
-            isCompleted: t.isCompleted ?? t.completed ?? false,
-          }));
-          this.tasks.set(list);
+          // TaskService already normalises `completed` → `isCompleted`.
+          this.tasks.set(response.data?.content ?? []);
           this.isTasksLoading.set(false);
         },
         error: (err: HttpErrorResponse) => {
@@ -264,20 +264,16 @@ export class RoomDetailFacade {
   }
 
   toggleTask(task: TaskData): void {
-    const currentCompleted = task.isCompleted ?? task.completed ?? false;
-    const updatedStatus = !currentCompleted;
+    const updatedStatus = !task.isCompleted;
     this.updatingTaskId.set(task.id);
     this.taskUpdateError.set(null);
     this.tasks.update((list) =>
       list.map((t) =>
-        t.id === task.id ? { ...t, isCompleted: updatedStatus, completed: updatedStatus } : t
+        t.id === task.id ? { ...t, isCompleted: updatedStatus } : t
       ),
     );
 
-    const payload: UpdateTaskRequest = {
-      title: task.title,
-      isCompleted: updatedStatus,
-    };
+    const payload: UpdateTaskRequest = { title: task.title, isCompleted: updatedStatus };
     this.taskService.updateTask(task.id, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -286,9 +282,10 @@ export class RoomDetailFacade {
           console.error('Failed to update task completion', err);
           this.taskUpdateError.set('Failed to update task status.');
           this.updatingTaskId.set(null);
+          // Roll back optimistic update.
           this.tasks.update((list) =>
             list.map((t) =>
-              t.id === task.id ? { ...t, isCompleted: currentCompleted, completed: currentCompleted } : t
+              t.id === task.id ? { ...t, isCompleted: task.isCompleted } : t
             ),
           );
         },
@@ -323,7 +320,7 @@ export class RoomDetailFacade {
 
     const payload: UpdateTaskRequest = {
       title: newTitle,
-      isCompleted: task.isCompleted ?? task.completed ?? false,
+      isCompleted: task.isCompleted,
     };
     this.taskService.updateTask(task.id, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))

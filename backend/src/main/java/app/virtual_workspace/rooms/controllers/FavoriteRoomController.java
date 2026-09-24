@@ -45,14 +45,16 @@ public class FavoriteRoomController {
         }
 
         @PostMapping("/{roomId}")
-        public ResponseEntity<ApiResponse<Void>> addRoomToFavorite(
+        public ResponseEntity<ApiResponse<FavoriteRoomResponseDto>> addRoomToFavorite(
                         @PathVariable Long roomId,
                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
-                favoriteRoomService.addRoomToFavorite(userPrincipal.getId(), roomId);
+                FavoriteRoomResponseDto favoriteRoomResponseDto = favoriteRoomService
+                                .addRoomToFavorite(userPrincipal.getId(), roomId);
 
-                ApiResponse<Void> response = ApiResponse.<Void>builder()
+                ApiResponse<FavoriteRoomResponseDto> response = ApiResponse.<FavoriteRoomResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .message("Added room to favorites successfully")
+                                .data(favoriteRoomResponseDto)
                                 .build();
 
                 return ResponseEntity.ok().body(response);

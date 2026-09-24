@@ -59,8 +59,7 @@ public class FavoriteRoomControllerTest {
                 10L,
                 "Lounge Room",
                 "Relax and chat",
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 
     @Nested
@@ -75,8 +74,8 @@ public class FavoriteRoomControllerTest {
 
             when(favoriteRoomService.getFavoriteRooms(1L, pageable)).thenReturn(slice);
 
-            ResponseEntity<ApiResponse<Slice<FavoriteRoomResponseDto>>> response =
-                    favoriteRoomController.getFavoriteRooms(pageable, userPrincipal);
+            ResponseEntity<ApiResponse<Slice<FavoriteRoomResponseDto>>> response = favoriteRoomController
+                    .getFavoriteRooms(pageable, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -110,13 +109,14 @@ public class FavoriteRoomControllerTest {
         void addRoomToFavorite_shouldReturnOk_whenAddSucceeds() {
             doNothing().when(favoriteRoomService).addRoomToFavorite(1L, 10L);
 
-            ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.addRoomToFavorite(10L, userPrincipal);
+            ResponseEntity<ApiResponse<FavoriteRoomResponseDto>> response = favoriteRoomController
+                    .addRoomToFavorite(10L, userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
             assertThat(response.getBody().getMessage()).isEqualTo("Added room to favorites successfully");
-            assertThat(response.getBody().getData()).isNull();
+            assertThat(response.getBody().getData()).isNotNull();
 
             verify(favoriteRoomService, times(1)).addRoomToFavorite(1L, 10L);
         }
@@ -124,10 +124,11 @@ public class FavoriteRoomControllerTest {
         @Test
         @DisplayName("Should handle boundary room IDs (0L, -1L, Long.MAX_VALUE)")
         void addRoomToFavorite_boundaryIds_shouldCallServiceCorrectly() {
-            long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
+            long[] boundaryIds = { 0L, -1L, Long.MAX_VALUE };
 
             for (long id : boundaryIds) {
-                ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.addRoomToFavorite(id, userPrincipal);
+                ResponseEntity<ApiResponse<FavoriteRoomResponseDto>> response = favoriteRoomController
+                        .addRoomToFavorite(id, userPrincipal);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                 verify(favoriteRoomService, times(1)).addRoomToFavorite(1L, id);
             }
@@ -154,7 +155,8 @@ public class FavoriteRoomControllerTest {
         void removeRoomFromFavorite_shouldReturnOk_whenRemoveSucceeds() {
             doNothing().when(favoriteRoomService).removeRoomFromFavorite(1L, 10L);
 
-            ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.removeRoomFromFavorite(10L, userPrincipal);
+            ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.removeRoomFromFavorite(10L,
+                    userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -168,10 +170,11 @@ public class FavoriteRoomControllerTest {
         @Test
         @DisplayName("Should handle boundary room IDs (0L, -1L, Long.MAX_VALUE)")
         void removeRoomFromFavorite_boundaryIds_shouldCallServiceCorrectly() {
-            long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
+            long[] boundaryIds = { 0L, -1L, Long.MAX_VALUE };
 
             for (long id : boundaryIds) {
-                ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.removeRoomFromFavorite(id, userPrincipal);
+                ResponseEntity<ApiResponse<Void>> response = favoriteRoomController.removeRoomFromFavorite(id,
+                        userPrincipal);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                 verify(favoriteRoomService, times(1)).removeRoomFromFavorite(1L, id);
             }
