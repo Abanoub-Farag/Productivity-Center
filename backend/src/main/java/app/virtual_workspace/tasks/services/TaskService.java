@@ -38,7 +38,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void updateTask(Long userId, Long taskId, UpdateTaskDto taskRequest) {
+    public TaskResponseDto updateTask(Long userId, Long taskId, UpdateTaskDto taskRequest) {
         Task task = taskRepository.findByIdAndUserId(taskId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task With Id: " + taskId + " Not Found"));
 
@@ -49,7 +49,8 @@ public class TaskService {
             task.setCompleted(taskRequest.getIsCompleted());
         }
 
-        taskRepository.save(task);
+        return taskMapper.taskResponseDto(task);
+
     }
 
     @Transactional

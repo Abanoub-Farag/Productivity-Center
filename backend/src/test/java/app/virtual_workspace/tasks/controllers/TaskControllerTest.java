@@ -78,7 +78,8 @@ public class TaskControllerTest {
 
             when(taskService.getAllTasks(1L, pageable)).thenReturn(taskSlice);
 
-            ResponseEntity<ApiResponse<Slice<TaskResponseDto>>> response = taskController.getAllTasks(pageable, userPrincipal);
+            ResponseEntity<ApiResponse<Slice<TaskResponseDto>>> response = taskController.getAllTasks(pageable,
+                    userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -156,12 +157,14 @@ public class TaskControllerTest {
 
             doNothing().when(taskService).updateTask(1L, 1L, updateDto);
 
-            ResponseEntity<ApiResponse<Void>> response = taskController.updateTask(1L, updateDto, userPrincipal);
+            ResponseEntity<ApiResponse<TaskResponseDto>> response = taskController.updateTask(1L, updateDto,
+                    userPrincipal);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
             assertThat(response.getBody().getMessage()).isEqualTo("Task updated successfully");
+            assertThat(response.getBody().getData().getTitle()).isNotNull();
             assertThat(response.getBody().getData()).isNull();
 
             verify(taskService, times(1)).updateTask(1L, 1L, updateDto);
@@ -170,11 +173,12 @@ public class TaskControllerTest {
         @Test
         @DisplayName("Should update task correctly for boundary task IDs (0L, -1L, Long.MAX_VALUE)")
         void updateTask_boundaryIds_shouldCallServiceCorrectly() {
-            long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
+            long[] boundaryIds = { 0L, -1L, Long.MAX_VALUE };
             UpdateTaskDto updateDto = UpdateTaskDto.builder().title("Boundary").build();
 
             for (long id : boundaryIds) {
-                ResponseEntity<ApiResponse<Void>> response = taskController.updateTask(id, updateDto, userPrincipal);
+                ResponseEntity<ApiResponse<TaskResponseDto>> response = taskController.updateTask(id, updateDto,
+                        userPrincipal);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                 verify(taskService, times(1)).updateTask(1L, id, updateDto);
             }
@@ -217,7 +221,7 @@ public class TaskControllerTest {
         @Test
         @DisplayName("Should delete task correctly for boundary task IDs (0L, -1L, Long.MAX_VALUE)")
         void deleteTask_boundaryIds_shouldCallServiceCorrectly() {
-            long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
+            long[] boundaryIds = { 0L, -1L, Long.MAX_VALUE };
 
             for (long id : boundaryIds) {
                 ResponseEntity<ApiResponse<Void>> response = taskController.deleteTask(id, userPrincipal);

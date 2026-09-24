@@ -63,15 +63,16 @@ public class TaskController {
         }
 
         @PutMapping("/{taskId}")
-        public ResponseEntity<ApiResponse<Void>> updateTask(
+        public ResponseEntity<ApiResponse<TaskResponseDto>> updateTask(
                         @PathVariable Long taskId,
                         @Valid @RequestBody UpdateTaskDto updateTaskDto,
                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
-                taskService.updateTask(userPrincipal.getId(), taskId, updateTaskDto);
+                TaskResponseDto task = taskService.updateTask(userPrincipal.getId(), taskId, updateTaskDto);
 
-                ApiResponse<Void> response = ApiResponse.<Void>builder()
+                ApiResponse<TaskResponseDto> response = ApiResponse.<TaskResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .message("Task updated successfully")
+                                .data(task)
                                 .build();
 
                 return ResponseEntity.ok(response);

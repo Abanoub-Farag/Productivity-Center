@@ -47,27 +47,27 @@
       @for (task of tasks(); track task.id) {
         <li
           class="task-card"
-          [class.task-card--done]="task.isCompleted || task.completed"
+          [class.task-card--done]="task.isCompleted"
           [class.task-card--updating]="updatingTaskId() === task.id"
           [id]="'task-' + task.id"
         >
           <button
             class="task-toggle"
-            [attr.aria-label]="(task.isCompleted || task.completed) ? 'Mark task incomplete' : 'Mark task complete'"
+            [attr.aria-label]="task.isCompleted ? 'Mark task incomplete' : 'Mark task complete'"
             [disabled]="updatingTaskId() === task.id"
             (click)="onToggleTask.emit(task)"
           >
             <lucide-icon
-              [img]="(task.isCompleted || task.completed) ? CheckCircle2Icon : CircleIcon"
+              [img]="task.isCompleted ? CheckCircle2Icon : CircleIcon"
               class="task-check-icon"
-              [class.task-check-icon--done]="task.isCompleted || task.completed"
+              [class.task-check-icon--done]="task.isCompleted"
             ></lucide-icon>
           </button>
 
           @if (editingTaskId() !== task.id) {
             <span
               class="task-text"
-              [class.task-text--done]="task.isCompleted || task.completed"
+              [class.task-text--done]="task.isCompleted"
               (dblclick)="onStartEditTask.emit(task)"
               title="Double click to edit title"
             >{{ task.title }}</span>
