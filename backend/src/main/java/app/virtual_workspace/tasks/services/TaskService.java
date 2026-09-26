@@ -49,6 +49,8 @@ public class TaskService {
             task.setCompleted(taskRequest.getIsCompleted());
         }
 
+        task = taskRepository.save(task);
+
         return taskMapper.taskResponseDto(task);
 
     }

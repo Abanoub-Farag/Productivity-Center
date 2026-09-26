@@ -155,7 +155,7 @@ public class TaskControllerTest {
                     .isCompleted(true)
                     .build();
 
-            doNothing().when(taskService).updateTask(1L, 1L, updateDto);
+            when(taskService.updateTask(1L, 1L, updateDto)).thenReturn(sampleTaskResponse);
 
             ResponseEntity<ApiResponse<TaskResponseDto>> response = taskController.updateTask(1L, updateDto,
                     userPrincipal);
@@ -164,8 +164,7 @@ public class TaskControllerTest {
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
             assertThat(response.getBody().getMessage()).isEqualTo("Task updated successfully");
-            assertThat(response.getBody().getData().getTitle()).isNotNull();
-            assertThat(response.getBody().getData()).isNull();
+            assertThat(response.getBody().getData()).isEqualTo(sampleTaskResponse);
 
             verify(taskService, times(1)).updateTask(1L, 1L, updateDto);
         }
