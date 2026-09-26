@@ -2,6 +2,7 @@ package app.virtual_workspace.rooms.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,15 +17,28 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
 
     boolean existsByUserIdAndRoomId(Long userId, Long roomId);
 
-    @Transactional
-    @Modifying
-    @Query("UPDATE RoomMembers r SET r.lastActiveAt = :localDateTime WHERE r.user.id = :userId AND r.room.id = :roomId")
-    void updateLastActiveAt(@Param("userId") Long userId, @Param("roomId") Long roomId,
-            @Param("localDateTime") LocalDateTime localDateTime);
+    Optional<RoomMembers> findByUserIdAndRoomId(Long userId, Long roomId);
 
     @Transactional
     @Modifying
-    @Query("UPDATE RoomMembers r SET r.status = 'OFFLINE' WHERE r.lastActiveAt < :localDateTime AND r.status = 'ONLINE'")
+    @Query("""
+            UPDATE RoomMembers r
+            SET r.lastActiveAt = :now, r.timerActive = :timerActive
+            WHERE r.user.id = :userId AND r.room.id = :roomId
+            """)
+    void updateHeartbeat(@Param("userId") Long userId,
+            @Param("roomId") Long roomId,
+            @Param("now") LocalDateTime now,
+            @Param("timerActive") boolean timerActive);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE RoomMembers r SET r.timerActive = false WHERE r.user.id = :userId AND r.room.id = :roomId")
+    void clearTimerActive(@Param("userId") Long userId, @Param("roomId") Long roomId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE RoomMembers r SET r.status = 'OFFLINE', r.timerActive = false WHERE r.lastActiveAt < :localDateTime AND r.status = 'ONLINE'")
     void disconnectNonActiveUsers(@Param("localDateTime") LocalDateTime localDateTime);
 
     List<RoomMembers> findRoomMembersByRoomId(Long roomId);
@@ -46,3 +60,4 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
             """)
     List<RoomMemberDto> findByRoomIdWithProfileAndUser(@Param("roomId") Long roomId);
 }
+

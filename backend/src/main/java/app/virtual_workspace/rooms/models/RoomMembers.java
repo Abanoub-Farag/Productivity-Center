@@ -70,4 +70,8 @@ public class RoomMembers {
         @UpdateTimestamp
         private LocalDateTime lastActiveAt;
 
+        @Builder.Default
+        @Column(name = "timer_active", nullable = false)
+        private boolean timerActive = false;
+
 }

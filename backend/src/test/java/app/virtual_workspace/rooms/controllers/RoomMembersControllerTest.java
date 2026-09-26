@@ -116,9 +116,9 @@ public class RoomMembersControllerTest {
         @Test
         @DisplayName("Should return 200 OK when heartbeat succeeds")
         void heartBeat_shouldReturnOk_whenHeartBeatSucceeds() {
-            doNothing().when(roomMembersService).heartBeat(1L, 10L);
+            doNothing().when(roomMembersService).heartBeat(1L, 10L, false);
 
-            ResponseEntity<ApiResponse<Void>> response = roomMembersController.heartBeat(10L, userPrincipal);
+            ResponseEntity<ApiResponse<Void>> response = roomMembersController.heartBeat(10L, userPrincipal, null);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -126,7 +126,7 @@ public class RoomMembersControllerTest {
             assertThat(response.getBody().getMessage()).isEqualTo("Heartbeat done");
             assertThat(response.getBody().getData()).isNull();
 
-            verify(roomMembersService, times(1)).heartBeat(1L, 10L);
+            verify(roomMembersService, times(1)).heartBeat(1L, 10L, false);
         }
 
         @Test
@@ -135,9 +135,9 @@ public class RoomMembersControllerTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                ResponseEntity<ApiResponse<Void>> response = roomMembersController.heartBeat(id, userPrincipal);
+                ResponseEntity<ApiResponse<Void>> response = roomMembersController.heartBeat(id, userPrincipal, null);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                verify(roomMembersService, times(1)).heartBeat(1L, id);
+                verify(roomMembersService, times(1)).heartBeat(1L, id, false);
             }
         }
 
@@ -145,9 +145,9 @@ public class RoomMembersControllerTest {
         @DisplayName("Should propagate exception when heartbeat fails downstream")
         void heartBeat_shouldPropagateException_whenServiceThrows() {
             doThrow(new RuntimeException("Heartbeat failure"))
-                    .when(roomMembersService).heartBeat(1L, 10L);
+                    .when(roomMembersService).heartBeat(1L, 10L, false);
 
-            assertThatThrownBy(() -> roomMembersController.heartBeat(10L, userPrincipal))
+            assertThatThrownBy(() -> roomMembersController.heartBeat(10L, userPrincipal, null))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Heartbeat failure");
         }

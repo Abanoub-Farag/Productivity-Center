@@ -8,10 +8,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.virtual_workspace.accounts.dtos.UserPrincipal;
+import app.virtual_workspace.rooms.dtos.RoomMembers.HeartbeatRequestDto;
 import app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto;
 import app.virtual_workspace.rooms.services.RoomMembersService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
@@ -41,8 +43,11 @@ public class RoomMembersController {
     @PostMapping("/{roomId}/heartbeat")
     public ResponseEntity<ApiResponse<Void>> heartBeat(
             @PathVariable Long roomId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        roomMembersService.heartBeat(userPrincipal.getId(), roomId);
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody(required = false) HeartbeatRequestDto body) {
+
+        boolean timerActive = body != null && Boolean.TRUE.equals(body.getTimerActive());
+        roomMembersService.heartBeat(userPrincipal.getId(), roomId, timerActive);
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())

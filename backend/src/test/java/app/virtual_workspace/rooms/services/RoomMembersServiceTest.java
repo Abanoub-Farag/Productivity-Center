@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import app.virtual_workspace.accounts.models.User;
-import app.virtual_workspace.accounts.services.UserAuthService;
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto;
 import app.virtual_workspace.rooms.models.Room;
@@ -45,7 +45,7 @@ public class RoomMembersServiceTest {
     private RoomRepository roomRepository;
 
     @Mock
-    private UserAuthService userAuthService;
+    private UserReferenceProvider userReferenceProvider;
 
     @InjectMocks
     private RoomMembersService roomMembersService;
@@ -64,6 +64,8 @@ public class RoomMembersServiceTest {
                 .id(10L)
                 .title("Tech Room")
                 .build();
+
+        org.mockito.Mockito.lenient().when(userReferenceProvider.getReference(any())).thenReturn(sampleUser);
     }
 
     @Nested
@@ -95,8 +97,8 @@ public class RoomMembersServiceTest {
             verify(roomMembersRepository, times(1)).save(captor.capture());
 
             RoomMembers saved = captor.getValue();
-            assertThat(saved.getUserId()).isEqualTo(1L);
-            assertThat(saved.getRoomId()).isEqualTo(10L);
+            assertThat(saved.getUser().getId()).isEqualTo(1L);
+            assertThat(saved.getRoom().getId()).isEqualTo(10L);
             assertThat(saved.getStatus()).isEqualTo(Status.ONLINE);
         }
 
@@ -151,10 +153,10 @@ public class RoomMembersServiceTest {
         @Test
         @DisplayName("Should update last active timestamp for user and room")
         void heartBeat_shouldUpdateLastActiveTimestamp() {
-            roomMembersService.heartBeat(1L, 10L);
+            roomMembersService.heartBeat(1L, 10L, true);
 
             verify(roomMembersRepository, times(1))
-                    .updateLastActiveAt(eq(1L), eq(10L), any(LocalDateTime.class));
+                    .updateHeartbeat(eq(1L), eq(10L), any(LocalDateTime.class), eq(true));
         }
 
         @Test
@@ -163,10 +165,10 @@ public class RoomMembersServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                roomMembersService.heartBeat(1L, id);
+                roomMembersService.heartBeat(1L, id, false);
 
                 verify(roomMembersRepository, times(1))
-                        .updateLastActiveAt(eq(1L), eq(id), any(LocalDateTime.class));
+                        .updateHeartbeat(eq(1L), eq(id), any(LocalDateTime.class), eq(false));
             }
         }
 
@@ -174,9 +176,9 @@ public class RoomMembersServiceTest {
         @DisplayName("Should propagate exception when repository throws downstream")
         void heartBeat_shouldPropagateException_whenRepositoryThrows() {
             doThrow(new RuntimeException("Database error"))
-                    .when(roomMembersRepository).updateLastActiveAt(eq(1L), eq(10L), any(LocalDateTime.class));
+                    .when(roomMembersRepository).updateHeartbeat(eq(1L), eq(10L), any(LocalDateTime.class), eq(false));
 
-            assertThatThrownBy(() -> roomMembersService.heartBeat(1L, 10L))
+            assertThatThrownBy(() -> roomMembersService.heartBeat(1L, 10L, false))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Database error");
         }

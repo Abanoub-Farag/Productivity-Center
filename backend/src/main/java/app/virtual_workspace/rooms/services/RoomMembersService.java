@@ -48,9 +48,14 @@ public class RoomMembersService {
     }
 
     @Transactional
-    public void heartBeat(Long userId, Long roomId) {
-        roomMembersRepository.updateLastActiveAt(userId, roomId, LocalDateTime.now());
+    public void heartBeat(Long userId, Long roomId, boolean timerActive) {
+        roomMembersRepository.updateHeartbeat(userId, roomId, LocalDateTime.now(), timerActive);
+    }
 
+    @Transactional(readOnly = true)
+    public RoomMembers findMember(Long userId, Long roomId) {
+        return roomMembersRepository.findByUserIdAndRoomId(userId, roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room membership not found"));
     }
 
     @Transactional(readOnly = true)
@@ -60,3 +65,4 @@ public class RoomMembersService {
     }
 
 }
+

@@ -1,0 +1,2 @@
+ALTER TABLE room_members
+ADD COLUMN timer_active BOOLEAN NOT NULL DEFAULT FALSE;
