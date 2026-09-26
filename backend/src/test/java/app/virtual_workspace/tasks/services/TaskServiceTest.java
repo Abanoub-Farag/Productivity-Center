@@ -35,6 +35,9 @@ import app.virtual_workspace.tasks.mappers.TaskMapper;
 import app.virtual_workspace.tasks.models.Task;
 import app.virtual_workspace.tasks.repositories.TaskRepository;
 
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
+import app.virtual_workspace.accounts.models.User;
+
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
 
@@ -44,6 +47,9 @@ public class TaskServiceTest {
     @Mock
     private TaskMapper taskMapper;
 
+    @Mock
+    private UserReferenceProvider userReferenceProvider;
+
     @InjectMocks
     private TaskService taskService;
 
@@ -52,6 +58,8 @@ public class TaskServiceTest {
 
     @BeforeEach
     void setUp() {
+        org.mockito.Mockito.lenient().when(userReferenceProvider.getReference(any())).thenReturn(User.builder().id(1L).build());
+        
         sampleTask = Task.builder()
                 .id(10L)
                 .title("Initial Task")
@@ -154,7 +162,7 @@ public class TaskServiceTest {
 
             Task savedTask = taskCaptor.getValue();
             assertThat(savedTask).isNotNull();
-            assertThat(savedTask.getUserId()).isEqualTo(1L);
+            assertThat(savedTask.getUser().getId()).isEqualTo(1L);
             assertThat(savedTask.getTitle()).isEqualTo("New Task");
             assertThat(savedTask.isCompleted()).isFalse();
             assertThat(result).isEqualTo(sampleResponseDto);

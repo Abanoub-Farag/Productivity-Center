@@ -41,6 +41,8 @@ import app.virtual_workspace.rooms.models.Room;
 import app.virtual_workspace.rooms.models.enums.Visibility;
 import app.virtual_workspace.rooms.repositories.RoomRepository;
 
+import app.virtual_workspace.accounts.services.UserReferenceProvider;
+
 @ExtendWith(MockitoExtension.class)
 public class RoomServiceTest {
 
@@ -49,6 +51,9 @@ public class RoomServiceTest {
 
     @Mock
     private RoomMapper roomMapper;
+
+    @Mock
+    private UserReferenceProvider userReferenceProvider;
 
     @InjectMocks
     private RoomService roomService;
@@ -61,6 +66,8 @@ public class RoomServiceTest {
 
     @BeforeEach
     void setUp() {
+        org.mockito.Mockito.lenient().when(userReferenceProvider.getReference(any())).thenReturn(User.builder().id(1L).build());
+        
         ownerUser = User.builder()
                 .id(1L)
                 .email("owner@example.com")
@@ -164,7 +171,7 @@ public class RoomServiceTest {
 
             ArgumentCaptor<Room> captor = ArgumentCaptor.forClass(Room.class);
             verify(roomRepository, times(1)).save(captor.capture());
-            assertThat(captor.getValue().getUserId()).isEqualTo(1L);
+            assertThat(captor.getValue().getUser().getId()).isEqualTo(1L);
         }
 
         @Test

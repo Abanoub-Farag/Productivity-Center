@@ -107,7 +107,7 @@ public class FavoriteRoomControllerTest {
         @Test
         @DisplayName("Should return 200 OK when room is added to favorites successfully")
         void addRoomToFavorite_shouldReturnOk_whenAddSucceeds() {
-            doNothing().when(favoriteRoomService).addRoomToFavorite(1L, 10L);
+            when(favoriteRoomService.addRoomToFavorite(1L, 10L)).thenReturn(sampleResponseDto);
 
             ResponseEntity<ApiResponse<FavoriteRoomResponseDto>> response = favoriteRoomController
                     .addRoomToFavorite(10L, userPrincipal);
@@ -116,7 +116,7 @@ public class FavoriteRoomControllerTest {
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
             assertThat(response.getBody().getMessage()).isEqualTo("Added room to favorites successfully");
-            assertThat(response.getBody().getData()).isNotNull();
+            assertThat(response.getBody().getData()).isEqualTo(sampleResponseDto);
 
             verify(favoriteRoomService, times(1)).addRoomToFavorite(1L, 10L);
         }

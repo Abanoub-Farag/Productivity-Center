@@ -30,6 +30,7 @@ import org.springframework.data.domain.SliceImpl;
 import app.virtual_workspace.accounts.services.UserReferenceProvider;
 import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
+import app.virtual_workspace.exceptions.custom.ResourceAlreadyExistsException;
 import app.virtual_workspace.rooms.dtos.favoriteroom.FavoriteRoomResponseDto;
 import app.virtual_workspace.rooms.mappers.FavoriteRoomMapper;
 import app.virtual_workspace.rooms.models.FavoriteRoom;
@@ -143,11 +144,13 @@ public class FavoriteRoomServiceTest {
     class AddRoomToFavoriteTests {
 
         @Test
-        @DisplayName("Should do nothing when room is already in favorites (early return)")
-        void addRoomToFavorite_shouldDoNothing_whenRoomAlreadyInFavorites() {
+        @DisplayName("Should throw ResourceAlreadyExistsException when room is already in favorites")
+        void addRoomToFavorite_shouldThrowException_whenRoomAlreadyInFavorites() {
             when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(true);
 
-            favoriteRoomService.addRoomToFavorite(1L, 10L);
+            assertThatThrownBy(() -> favoriteRoomService.addRoomToFavorite(1L, 10L))
+                    .isInstanceOf(ResourceAlreadyExistsException.class)
+                    .hasMessage("Room with id: 10 is already in favorited");
 
             verify(favoriteRoomRepository, times(1)).existsByUserIdAndRoomId(1L, 10L);
             verify(roomRepository, never()).findById(any());
