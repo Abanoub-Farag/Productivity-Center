@@ -43,10 +43,10 @@ public class TimerSession {
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id", nullable = true)
     private Room room;
 
-    @Column(name = "room_id", nullable = false, insertable = false, updatable = false)
+    @Column(name = "room_id", nullable = true, insertable = false, updatable = false)
     private Long roomId;
 
     @Column(name = "started_at", nullable = false)
