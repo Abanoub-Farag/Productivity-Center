@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -85,8 +85,8 @@ public class RoomServiceTest {
                 .visibility(Visibility.PUBLIC)
                 .user(ownerUser)
                 .userId(1L)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
                 .build();
 
         sampleAllRoomDto = new AllRoomResponseDto(10L, "Conference A", "Discussion Room", 1L, Visibility.PUBLIC);

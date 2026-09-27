@@ -10,7 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -156,7 +156,7 @@ public class RoomMembersServiceTest {
             roomMembersService.heartBeat(1L, 10L, true);
 
             verify(roomMembersRepository, times(1))
-                    .updateHeartbeat(eq(1L), eq(10L), any(LocalDateTime.class), eq(true));
+                    .updateHeartbeat(eq(1L), eq(10L), any(Instant.class), eq(true));
         }
 
         @Test
@@ -168,7 +168,7 @@ public class RoomMembersServiceTest {
                 roomMembersService.heartBeat(1L, id, false);
 
                 verify(roomMembersRepository, times(1))
-                        .updateHeartbeat(eq(1L), eq(id), any(LocalDateTime.class), eq(false));
+                        .updateHeartbeat(eq(1L), eq(id), any(Instant.class), eq(false));
             }
         }
 
@@ -176,7 +176,7 @@ public class RoomMembersServiceTest {
         @DisplayName("Should propagate exception when repository throws downstream")
         void heartBeat_shouldPropagateException_whenRepositoryThrows() {
             doThrow(new RuntimeException("Database error"))
-                    .when(roomMembersRepository).updateHeartbeat(eq(1L), eq(10L), any(LocalDateTime.class), eq(false));
+                    .when(roomMembersRepository).updateHeartbeat(eq(1L), eq(10L), any(Instant.class), eq(false));
 
             assertThatThrownBy(() -> roomMembersService.heartBeat(1L, 10L, false))
                     .isInstanceOf(RuntimeException.class)

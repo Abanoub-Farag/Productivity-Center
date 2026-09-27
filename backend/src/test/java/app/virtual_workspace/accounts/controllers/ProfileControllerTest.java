@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,8 +52,8 @@ public class ProfileControllerTest {
                 "test@example.com",
                 "John",
                 "Doe",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                Instant.now(),
+                Instant.now()
         );
 
         samplePrincipal = UserPrincipal.builder()
@@ -164,8 +164,8 @@ public class ProfileControllerTest {
                     "test@example.com",
                     "Jane",
                     "Smith",
-                    LocalDateTime.now(),
-                    LocalDateTime.now()
+                    Instant.now(),
+                    Instant.now()
             );
 
             when(profileService.updateProfile(1L, updateDto)).thenReturn(updatedProfile);

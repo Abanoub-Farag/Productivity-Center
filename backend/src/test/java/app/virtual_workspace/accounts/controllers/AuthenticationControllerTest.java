@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -283,7 +283,7 @@ public class AuthenticationControllerTest {
                     .email("test@example.com")
                     .firstName("John")
                     .lastName("Doe")
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
 
             when(userService.userData(1L)).thenReturn(userDataDto);

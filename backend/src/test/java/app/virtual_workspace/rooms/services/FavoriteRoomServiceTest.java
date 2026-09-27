@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -74,13 +74,13 @@ public class FavoriteRoomServiceTest {
                 .description("Main room")
                 .build();
 
-        sampleFavoriteRoom = new FavoriteRoom(100L, sampleUser, 1L, sampleRoom, 10L, LocalDateTime.now());
+        sampleFavoriteRoom = new FavoriteRoom(100L, sampleUser, 1L, sampleRoom, 10L, Instant.now());
 
         sampleResponseDto = new FavoriteRoomResponseDto(
                 10L,
                 "Conference Room",
                 "Main room",
-                LocalDateTime.now()
+                Instant.now()
         );
 
         org.mockito.Mockito.lenient().when(userReferenceProvider.getReference(any())).thenReturn(sampleUser);
@@ -253,7 +253,7 @@ public class FavoriteRoomServiceTest {
             long[] boundaryIds = {0L, -1L, Long.MAX_VALUE};
 
             for (long id : boundaryIds) {
-                FavoriteRoom fr = new FavoriteRoom(id, sampleUser, 1L, sampleRoom, id, LocalDateTime.now());
+                FavoriteRoom fr = new FavoriteRoom(id, sampleUser, 1L, sampleRoom, id, Instant.now());
                 when(favoriteRoomRepository.findFavoriteRoomByUserIdAndRoomId(1L, id))
                         .thenReturn(Optional.of(fr));
 

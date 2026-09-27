@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +59,7 @@ public class FavoriteRoomControllerTest {
                 10L,
                 "Lounge Room",
                 "Relax and chat",
-                LocalDateTime.now());
+                Instant.now());
     }
 
     @Nested
