@@ -1,6 +1,6 @@
 package app.virtual_workspace.timer.dtos;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import app.virtual_workspace.timer.models.enums.TimerStatus;
 import lombok.AllArgsConstructor;
@@ -19,8 +19,8 @@ public class TimerSessionResponseDto {
     private Long id;
     private Long userId;
     private Long roomId;
-    private LocalDateTime startedAt;
-    private LocalDateTime endedAt;
+    private Instant startedAt;
+    private Instant endedAt;
     private Long duration;
     private TimerStatus status;
 

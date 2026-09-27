@@ -1,6 +1,6 @@
 package app.virtual_workspace.timer.services;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class TimerSessionScheduler {
 
     @Scheduled(fixedRate = 30_000)
     public void finalizeTimedOutSessions() {
-        LocalDateTime cutoff = LocalDateTime.now().minusSeconds(HEARTBEAT_TIMEOUT_SECONDS);
+        Instant cutoff = Instant.now().minusSeconds(HEARTBEAT_TIMEOUT_SECONDS);
         List<TimerSession> timedOut = timerSessionRepository.findTimedOutRunningSessions(cutoff);
 
         if (!timedOut.isEmpty()) {

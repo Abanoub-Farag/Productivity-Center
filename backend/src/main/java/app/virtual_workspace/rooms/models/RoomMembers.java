@@ -1,6 +1,6 @@
 package app.virtual_workspace.rooms.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -64,11 +64,11 @@ public class RoomMembers {
 
         @Column(name = "created_at", nullable = false, updatable = false)
         @CreationTimestamp
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         @Column(name = "last_active_at", nullable = false)
         @UpdateTimestamp
-        private LocalDateTime lastActiveAt;
+        private Instant lastActiveAt;
 
         @Builder.Default
         @Column(name = "timer_active", nullable = false)

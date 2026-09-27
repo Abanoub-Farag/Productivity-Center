@@ -1,6 +1,6 @@
 package app.virtual_workspace.scheduling;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ public class RoomMembersStatusScheduler {
     @Scheduled(fixedRate = 30000)
     public void disconnectNonActiveUsers(){
 
-        LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(30);
+        Instant localDateTime = Instant.now().minusSeconds(30);
         roomMembersRepository.disconnectNonActiveUsers(localDateTime);
 
     }

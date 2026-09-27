@@ -1,6 +1,6 @@
 package app.virtual_workspace.tasks.dtos;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ public class TaskResponseDto {
     private Long id;
     private String title;
     private boolean isCompleted;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

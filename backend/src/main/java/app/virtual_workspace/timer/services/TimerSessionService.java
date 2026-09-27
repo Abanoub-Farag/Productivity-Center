@@ -1,6 +1,6 @@
 package app.virtual_workspace.timer.services;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -55,7 +55,7 @@ public class TimerSessionService {
         TimerSession session = TimerSession.builder()
                 .user(userReferenceProvider.getReference(userId))
                 .room(room)
-                .startedAt(LocalDateTime.now())
+                .startedAt(Instant.now())
                 .status(TimerStatus.RUNNING)
                 .build();
 
@@ -65,7 +65,7 @@ public class TimerSessionService {
         // timerActive is set to true via the next heartbeat carrying { timerActive:
         // true }
         // or we set it directly here for immediate consistency:
-        roomMembersRepository.updateHeartbeat(userId, roomId, LocalDateTime.now(), true);
+        roomMembersRepository.updateHeartbeat(userId, roomId, Instant.now(), true);
 
         return timerSessionMapper.toDto(saved);
     }
@@ -86,7 +86,7 @@ public class TimerSessionService {
             throw new ResourceAlreadyExistsException("Timer session is already completed");
         }
 
-        LocalDateTime endedAt = LocalDateTime.now();
+        Instant endedAt = Instant.now();
         long duration = ChronoUnit.SECONDS.between(session.getStartedAt(), endedAt);
 
         session.setEndedAt(endedAt);
@@ -125,7 +125,7 @@ public class TimerSessionService {
     // ── Historical sessions ────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public List<TimerSessionResponseDto> getUserSessions(Long userId, LocalDateTime from, LocalDateTime to) {
+    public List<TimerSessionResponseDto> getUserSessions(Long userId, Instant from, Instant to) {
         return timerSessionRepository
                 .findByUserIdAndStartedAtBetweenOrderByStartedAtDesc(userId, from, to)
                 .stream()
@@ -135,7 +135,7 @@ public class TimerSessionService {
 
     @Transactional(readOnly = true)
     public List<TimerSessionResponseDto> getUserSessionsInRoom(Long userId, Long roomId,
-            LocalDateTime from, LocalDateTime to) {
+            Instant from, Instant to) {
         return timerSessionRepository
                 .findByUserIdAndRoomIdAndStartedAtBetweenOrderByStartedAtDesc(userId, roomId, from, to)
                 .stream()
@@ -150,7 +150,7 @@ public class TimerSessionService {
         // Use lastActiveAt of the RoomMembers record as endedAt
         roomMembersRepository.findByUserIdAndRoomId(session.getUserId(), session.getRoomId())
                 .ifPresent(member -> {
-                    LocalDateTime endedAt = member.getLastActiveAt();
+                    Instant endedAt = member.getLastActiveAt();
                     long duration = Math.max(0,
                             ChronoUnit.SECONDS.between(session.getStartedAt(), endedAt));
 

@@ -1,6 +1,6 @@
 package app.virtual_workspace.timer.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.rooms.models.Room;
@@ -50,10 +50,10 @@ public class TimerSession {
     private Long roomId;
 
     @Column(name = "started_at", nullable = false)
-    private LocalDateTime startedAt;
+    private Instant startedAt;
 
     @Column(name = "ended_at")
-    private LocalDateTime endedAt;
+    private Instant endedAt;
 
     @Column
     private Long duration;

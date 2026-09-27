@@ -1,8 +1,8 @@
 package app.virtual_workspace.timer.controllers;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -91,8 +91,8 @@ public class TimerSessionController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        LocalDateTime from = startDate.atStartOfDay();
-        LocalDateTime to = endDate.atTime(LocalTime.MAX);
+        Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
 
         List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessionsInRoom(
                 userPrincipal.getId(), roomId, from, to);
@@ -114,8 +114,8 @@ public class TimerSessionController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        LocalDateTime from = startDate.atStartOfDay();
-        LocalDateTime to = endDate.atTime(LocalTime.MAX);
+        Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
 
         List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessions(
                 userPrincipal.getId(), from, to);

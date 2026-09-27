@@ -1,6 +1,6 @@
 package app.virtual_workspace.shared.dtos;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -19,7 +19,7 @@ import lombok.Setter;
 public class ApiResponse<T> {
 
     @Builder.Default
-    public String localDateTime = LocalDateTime.now().toString();
+    public String localDateTime = Instant.now().toString();
 
     public int status;
     public String message;

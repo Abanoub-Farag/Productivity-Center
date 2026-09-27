@@ -1,6 +1,6 @@
 package app.virtual_workspace.rooms.repositories;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +28,7 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
             """)
     void updateHeartbeat(@Param("userId") Long userId,
             @Param("roomId") Long roomId,
-            @Param("now") LocalDateTime now,
+            @Param("now") Instant now,
             @Param("timerActive") boolean timerActive);
 
     @Transactional
@@ -39,7 +39,7 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
     @Transactional
     @Modifying
     @Query("UPDATE RoomMembers r SET r.status = 'OFFLINE', r.timerActive = false WHERE r.lastActiveAt < :localDateTime AND r.status = 'ONLINE'")
-    void disconnectNonActiveUsers(@Param("localDateTime") LocalDateTime localDateTime);
+    void disconnectNonActiveUsers(@Param("localDateTime") Instant localDateTime);
 
     List<RoomMembers> findRoomMembersByRoomId(Long roomId);
 

@@ -1,6 +1,6 @@
 package app.virtual_workspace.rooms.services;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -49,7 +49,7 @@ public class RoomMembersService {
 
     @Transactional
     public void heartBeat(Long userId, Long roomId, boolean timerActive) {
-        roomMembersRepository.updateHeartbeat(userId, roomId, LocalDateTime.now(), timerActive);
+        roomMembersRepository.updateHeartbeat(userId, roomId, Instant.now(), timerActive);
     }
 
     @Transactional(readOnly = true)

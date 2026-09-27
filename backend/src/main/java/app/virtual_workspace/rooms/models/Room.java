@@ -1,6 +1,6 @@
 package app.virtual_workspace.rooms.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -54,11 +54,11 @@ public class Room {
 
         @CreationTimestamp
         @Column(name = "created_at", updatable = false)
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         @UpdateTimestamp
         @Column(name = "updated_at")
-        private LocalDateTime updatedAt;
+        private Instant updatedAt;
 
         @OneToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "user_id", nullable = false)

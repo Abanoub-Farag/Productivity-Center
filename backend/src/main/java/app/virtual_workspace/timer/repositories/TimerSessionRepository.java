@@ -1,6 +1,6 @@
 package app.virtual_workspace.timer.repositories;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,10 +18,10 @@ public interface TimerSessionRepository extends JpaRepository<TimerSession, Long
     Optional<TimerSession> findByUserIdAndRoomIdAndStatus(Long userId, Long roomId, TimerStatus status);
 
     List<TimerSession> findByUserIdAndStartedAtBetweenOrderByStartedAtDesc(
-            Long userId, LocalDateTime from, LocalDateTime to);
+            Long userId, Instant from, Instant to);
 
     List<TimerSession> findByUserIdAndRoomIdAndStartedAtBetweenOrderByStartedAtDesc(
-            Long userId, Long roomId, LocalDateTime from, LocalDateTime to);
+            Long userId, Long roomId, Instant from, Instant to);
 
     /**
      * Finds RUNNING sessions whose associated room_member heartbeat has timed out.
@@ -34,6 +34,6 @@ public interface TimerSessionRepository extends JpaRepository<TimerSession, Long
               AND rm.timerActive = true
               AND rm.lastActiveAt < :cutoff
             """)
-    List<TimerSession> findTimedOutRunningSessions(@Param("cutoff") LocalDateTime cutoff);
+    List<TimerSession> findTimedOutRunningSessions(@Param("cutoff") Instant cutoff);
 
 }

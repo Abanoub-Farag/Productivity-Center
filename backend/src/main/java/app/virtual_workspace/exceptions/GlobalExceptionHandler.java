@@ -1,6 +1,6 @@
 package app.virtual_workspace.exceptions;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
                                 .toList();
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(ex.getStatusCode().value())
                                 .message("Validation failed for one or more fields")
                                 .error("Validation Failed")
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
                         ResourceNotFoundException ex,
                         HttpServletRequest request) {
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.NOT_FOUND.value())
                                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                                 .message(ex.getMessage())
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
                         ResourceAlreadyExistsException ex,
                         HttpServletRequest request) {
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.CONFLICT.value())
                                 .error(HttpStatus.CONFLICT.getReasonPhrase())
                                 .message(ex.getMessage())
@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
                                 "Please check your input and try again.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.CONFLICT.value())
                                 .error(HttpStatus.CONFLICT.getReasonPhrase())
                                 .message(friendlyMessage)
@@ -120,7 +120,7 @@ public class GlobalExceptionHandler {
                         InsufficientAuthenticationException ex,
                         HttpServletRequest request) {
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.UNAUTHORIZED.value())
                                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                                 .message("Full authentication is required to access this resource")
@@ -145,7 +145,7 @@ public class GlobalExceptionHandler {
                 String message = "The email or password you entered is incorrect. Please double-check and try again.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.UNAUTHORIZED.value())
                                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                                 .message(message)
@@ -162,7 +162,7 @@ public class GlobalExceptionHandler {
                 log.warn("Token refresh failure at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.BAD_REQUEST.value())
                                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                                 .message(ex.getMessage())
@@ -183,7 +183,7 @@ public class GlobalExceptionHandler {
                 String message = "Authentication failed. Please check your credentials and try again.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.UNAUTHORIZED.value())
                                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                                 .message(message)
@@ -204,7 +204,7 @@ public class GlobalExceptionHandler {
                 String message = "Your session has expired. Please log in again.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.UNAUTHORIZED.value())
                                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                                 .message(message)
@@ -225,7 +225,7 @@ public class GlobalExceptionHandler {
                 String message = "Invalid or malformed authentication token. Please log in again.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.UNAUTHORIZED.value())
                                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                                 .message(message)
@@ -246,7 +246,7 @@ public class GlobalExceptionHandler {
                 String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                                 .message(message)
@@ -267,7 +267,7 @@ public class GlobalExceptionHandler {
                 String message = "Oops! Something went wrong on our end. Please try again in a few minutes.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                                 .message(message)
@@ -288,7 +288,7 @@ public class GlobalExceptionHandler {
                 String message = "You do not have permission to perform this action.";
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
-                                .timeStamp(LocalDateTime.now())
+                                .timeStamp(Instant.now())
                                 .status(HttpStatus.FORBIDDEN.value())
                                 .error(HttpStatus.FORBIDDEN.getReasonPhrase())
                                 .message(message)

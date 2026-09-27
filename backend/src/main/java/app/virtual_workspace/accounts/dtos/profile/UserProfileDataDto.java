@@ -1,7 +1,7 @@
 package app.virtual_workspace.accounts.dtos.profile;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import app.virtual_workspace.accounts.models.enums.Gender;
 import lombok.AllArgsConstructor;
@@ -20,6 +20,6 @@ public class UserProfileDataDto {
     private String email;
     private String firstName;
     private String lastName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

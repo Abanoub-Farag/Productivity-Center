@@ -1,6 +1,6 @@
 package app.virtual_workspace.rooms.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -52,7 +52,7 @@ public class FavoriteRoom {
 
         @CreationTimestamp
         @Column(name = "added_at", nullable = false)
-        private LocalDateTime addedAt;
+        private Instant addedAt;
 
         public Long getUserId() {
                 return this.userId != null ? this.userId : (this.user != null ? this.user.getId() : null);
