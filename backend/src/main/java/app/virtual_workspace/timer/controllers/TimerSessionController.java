@@ -26,107 +26,109 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TimerSessionController {
 
-    private final TimerSessionService timerSessionService;
+        private final TimerSessionService timerSessionService;
 
-    // ── POST /api/v1/rooms/{roomId}/timer-sessions ─────────────────────────────
+        // ── POST /api/v1/rooms/{roomId}/timer-sessions ─────────────────────────────
 
-    @PostMapping("/api/v1/rooms/{roomId}/timer-sessions")
-    public ResponseEntity<ApiResponse<TimerSessionResponseDto>> startTimer(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        @PostMapping("/api/v1/rooms/{roomId}/timer-sessions")
+        public ResponseEntity<ApiResponse<TimerSessionResponseDto>> startTimer(
+                        @PathVariable Long roomId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        TimerSessionResponseDto dto = timerSessionService.startTimer(userPrincipal.getId(), roomId);
+                TimerSessionResponseDto dto = timerSessionService.startTimer(userPrincipal.getId(), roomId);
 
-        ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
-                .status(HttpStatus.CREATED.value())
-                .message("Timer session started")
-                .data(dto)
-                .build();
+                ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
+                                .status(HttpStatus.CREATED.value())
+                                .message("Timer session started")
+                                .data(dto)
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    // ── PATCH /api/v1/timer-sessions/{sessionId} ───────────────────────────────
+        // ── PATCH /api/v1/timer-sessions/{sessionId} ───────────────────────────────
 
-    @PatchMapping("/api/v1/timer-sessions/{sessionId}")
-    public ResponseEntity<ApiResponse<TimerSessionResponseDto>> completeTimer(
-            @PathVariable Long sessionId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        @PatchMapping("/api/v1/timer-sessions/{sessionId}")
+        public ResponseEntity<ApiResponse<TimerSessionResponseDto>> completeTimer(
+                        @PathVariable Long sessionId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        TimerSessionResponseDto dto = timerSessionService.completeTimer(sessionId, userPrincipal.getId());
+                TimerSessionResponseDto dto = timerSessionService.completeTimer(sessionId, userPrincipal.getId());
 
-        ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Timer session completed")
-                .data(dto)
-                .build();
+                ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Timer session completed")
+                                .data(dto)
+                                .build();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    // ── GET /api/v1/timer-sessions/{sessionId} ─────────────────────────────────
+        // ── GET /api/v1/timer-sessions/{sessionId} ─────────────────────────────────
 
-    @GetMapping("/api/v1/timer-sessions/{sessionId}")
-    public ResponseEntity<ApiResponse<TimerSessionResponseDto>> getSession(
-            @PathVariable Long sessionId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        @GetMapping("/api/v1/timer-sessions/{sessionId}")
+        public ResponseEntity<ApiResponse<TimerSessionResponseDto>> getSession(
+                        @PathVariable Long sessionId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        TimerSessionResponseDto dto = timerSessionService.getSession(sessionId, userPrincipal.getId());
+                TimerSessionResponseDto dto = timerSessionService.getSession(sessionId, userPrincipal.getId());
 
-        ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Timer session retrieved")
-                .data(dto)
-                .build();
+                ApiResponse<TimerSessionResponseDto> response = ApiResponse.<TimerSessionResponseDto>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Timer session retrieved")
+                                .data(dto)
+                                .build();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    // ── GET /api/v1/rooms/{roomId}/timer-sessions ──────────────────────────────
+        // ── GET /api/v1/rooms/{roomId}/timer-sessions ──────────────────────────────
 
-    @GetMapping("/api/v1/rooms/{roomId}/timer-sessions")
-    public ResponseEntity<ApiResponse<List<TimerSessionResponseDto>>> getRoomTimerSessions(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        @GetMapping("/api/v1/rooms/{roomId}/timer-sessions")
+        public ResponseEntity<ApiResponse<List<TimerSessionResponseDto>>> getRoomTimerSessions(
+                        @PathVariable Long roomId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal,
+                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
-        Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
+                Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+                Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
 
-        List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessionsInRoom(
-                userPrincipal.getId(), roomId, from, to);
+                List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessionsInRoom(
+                                userPrincipal.getId(), roomId, from, to);
 
-        ApiResponse<List<TimerSessionResponseDto>> response = ApiResponse.<List<TimerSessionResponseDto>>builder()
-                .status(HttpStatus.OK.value())
-                .message("Room timer sessions retrieved")
-                .data(dtos)
-                .build();
+                ApiResponse<List<TimerSessionResponseDto>> response = ApiResponse
+                                .<List<TimerSessionResponseDto>>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Room timer sessions retrieved")
+                                .data(dtos)
+                                .build();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    // ── GET /api/v1/timer-sessions?startDate=&endDate= ─────────────────────────
+        // ── GET /api/v1/timer-sessions?startDate=&endDate= ─────────────────────────
 
-    @GetMapping("/api/v1/timer-sessions")
-    public ResponseEntity<ApiResponse<List<TimerSessionResponseDto>>> getUserTimerSessions(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        @GetMapping("/api/v1/timer-sessions")
+        public ResponseEntity<ApiResponse<List<TimerSessionResponseDto>>> getUserTimerSessions(
+                        @AuthenticationPrincipal UserPrincipal userPrincipal,
+                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
-        Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
+                Instant from = startDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+                Instant to = endDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().minusNanos(1);
 
-        List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessions(
-                userPrincipal.getId(), from, to);
+                List<TimerSessionResponseDto> dtos = timerSessionService.getUserSessions(
+                                userPrincipal.getId(), from, to);
 
-        ApiResponse<List<TimerSessionResponseDto>> response = ApiResponse.<List<TimerSessionResponseDto>>builder()
-                .status(HttpStatus.OK.value())
-                .message("Timer sessions retrieved")
-                .data(dtos)
-                .build();
+                ApiResponse<List<TimerSessionResponseDto>> response = ApiResponse
+                                .<List<TimerSessionResponseDto>>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Timer sessions retrieved")
+                                .data(dtos)
+                                .build();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
 }

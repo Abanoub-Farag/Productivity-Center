@@ -1,5 +1,7 @@
 package app.virtual_workspace.tasks.services;
 
+import java.time.Instant;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,13 @@ public class TaskService {
             task.setTitle(taskRequest.getTitle());
         }
         if (taskRequest.getIsCompleted() != null) {
+            boolean wasCompleted = task.isCompleted();
             task.setCompleted(taskRequest.getIsCompleted());
+            if (taskRequest.getIsCompleted() && !wasCompleted) {
+                task.setCompletedAt(Instant.now());
+            } else if (!taskRequest.getIsCompleted()) {
+                task.setCompletedAt(null);
+            }
         }
 
         task = taskRepository.save(task);

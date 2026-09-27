@@ -16,6 +16,7 @@ public interface TaskMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "completedAt", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "userId", ignore = true)
     Task toModel(CreateTaskDto taskRequest);

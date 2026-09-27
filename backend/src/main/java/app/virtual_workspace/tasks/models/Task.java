@@ -54,6 +54,9 @@ public class Task {
         @Column(name = "updated_at")
         private Instant updatedAt;
 
+        @Column(name = "completed_at")
+        private Instant completedAt;
+
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "user_id", nullable = false)
         private User user;

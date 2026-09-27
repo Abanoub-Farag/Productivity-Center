@@ -20,5 +20,6 @@ public class TaskResponseDto {
     private boolean isCompleted;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant completedAt;
 
 }
