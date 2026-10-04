@@ -2,3 +2,4 @@
 AGENT/
 AGENT.md
 .agents/
+.env
