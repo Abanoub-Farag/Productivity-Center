@@ -28,7 +28,22 @@
       </section>
 
       <!-- ═══ CENTER COLUMN: Pomodoro Timer ═══════════════════════════════ -->
-      <app-room-timer></app-room-timer>
+      <app-room-timer
+        [mode]="roomState.timerMode()"
+        [timerStatus]="roomState.timerStatus()"
+        [displaySeconds]="roomState.timerDisplaySeconds()"
+        [ringFraction]="roomState.timerRingFraction()"
+        [isLoading]="roomState.isTimerLoading()"
+        [timerError]="roomState.timerError()"
+        [lastSessionDuration]="roomState.lastSessionDuration()"
+        [isStopConfirmOpen]="roomState.isStopConfirmOpen()"
+        (startTimer)="roomState.startTimer()"
+        (requestStop)="roomState.requestStopTimer()"
+        (confirmStop)="roomState.confirmStopTimer()"
+        (cancelStop)="roomState.cancelStopTimer()"
+        (modeChange)="roomState.setTimerMode($event)"
+        (dismissError)="roomState.dismissTimerError()"
+      ></app-room-timer>
 
       <!-- ═══ RIGHT COLUMN: Session Tasks ════════════════════════════════ -->
       <app-room-task-panel

@@ -5,21 +5,30 @@ import { timer, switchMap, retry, catchError, of, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { RoomsDataService } from './rooms-data.service';
 import { FavoriteRoomService } from './favorite-room.service';
+import { TimerDataService } from './timer-data.service';
 import { TaskService } from '../../../features/tasks/services/task.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RoomData, UpdateRoomDto } from '../models/rooms.models';
 import { TaskData, UpdateTaskRequest } from '../../../features/tasks/models/task.models';
+import { TimerMode, TimerLifecycle } from '../models/timer.models';
 
 /** Discriminated-union type for heartbeat stream results. */
 type HeartbeatResult =
   | { isError: false }
   | { isError: true; error: HttpErrorResponse };
 
+/** Duration of the Pomodoro session in seconds (25 min). */
+const POMODORO_DURATION = 25 * 60;
+
+/** Full-ring cap for the stopwatch SVG ring (60 min). */
+const STOPWATCH_RING_CAP = 60 * 60;
+
 /** Scoped per room-detail route; provided in RoomDetailComponent's providers array. */
 @Injectable()
 export class RoomDetailFacade {
   private readonly roomsData = inject(RoomsDataService);
   private readonly favService = inject(FavoriteRoomService);
+  private readonly timerDataService = inject(TimerDataService);
   private readonly taskService = inject(TaskService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -66,6 +75,37 @@ export class RoomDetailFacade {
   readonly updatingTaskId = signal<number | null>(null);
   readonly taskUpdateError = signal<string | null>(null);
 
+  // ── Timer state ────────────────────────────────────────────────────────────
+
+  readonly timerMode          = signal<TimerMode>('pomodoro');
+  readonly timerStatus        = signal<TimerLifecycle>('idle');
+  readonly timerSessionId     = signal<number | null>(null);
+  /** ISO-8601 instant from the server — used for drift-corrected elapsed calculation. */
+  private readonly timerStartedAt = signal<string | null>(null);
+  readonly timerElapsed       = signal<number>(0);    // seconds
+  readonly timerError         = signal<string | null>(null);
+  readonly isTimerLoading     = signal<boolean>(false);
+  readonly isStopConfirmOpen  = signal<boolean>(false);
+  readonly lastSessionDuration = signal<number | null>(null); // seconds
+
+  /** Seconds left (Pomodoro) or elapsed (Stopwatch) — drives the display and ring. */
+  readonly timerDisplaySeconds = computed(() => {
+    const elapsed = this.timerElapsed();
+    return this.timerMode() === 'pomodoro'
+      ? Math.max(0, POMODORO_DURATION - elapsed)
+      : Math.min(elapsed, STOPWATCH_RING_CAP);
+  });
+
+  /** 0–1 ring fill fraction — 0 = empty, 1 = full. */
+  readonly timerRingFraction = computed(() => {
+    const elapsed = this.timerElapsed();
+    return this.timerMode() === 'pomodoro'
+      ? Math.max(0, (POMODORO_DURATION - elapsed) / POMODORO_DURATION)
+      : Math.min(elapsed, STOPWATCH_RING_CAP) / STOPWATCH_RING_CAP;
+  });
+
+  private tickIntervalId: ReturnType<typeof setInterval> | null = null;
+
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   initialize(id: number): void {
@@ -75,6 +115,8 @@ export class RoomDetailFacade {
     this.startHeartbeat(id);
     this.checkIfFavorite(id);
     this.fetchTasks();
+    this.recoverTimerSession();
+    this.registerLeaveRoomCleanup();
   }
 
   // ── Room actions ───────────────────────────────────────────────────────────
@@ -369,6 +411,214 @@ export class RoomDetailFacade {
         },
       });
   }
+
+  // ── Timer actions ──────────────────────────────────────────────────────────
+
+  /** Toggle between Pomodoro and Stopwatch. Locked while a session is running. */
+  setTimerMode(mode: TimerMode): void {
+    if (this.timerStatus() === 'running') return;
+    this.timerMode.set(mode);
+    this.timerError.set(null);
+  }
+
+  /** Start a new timer session on the backend, then begin local tick. */
+  startTimer(): void {
+    const roomId = this.roomId();
+    if (!roomId || this.timerStatus() === 'running' || this.timerStatus() === 'completing') return;
+
+    this.isTimerLoading.set(true);
+    this.timerError.set(null);
+    this.lastSessionDuration.set(null);
+
+    this.timerDataService.startTimer(roomId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const session = res.data!;
+          this.timerSessionId.set(session.id);
+          this.timerStartedAt.set(session.startedAt);
+          this.timerElapsed.set(0);
+          this.timerStatus.set('running');
+          this.timerError.set(null);
+          this.saveSessionId(session.id);
+          this.isTimerLoading.set(false);
+          this.startLocalTick();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isTimerLoading.set(false);
+          const msg = (err.error?.message as string | undefined)
+            ?? 'Failed to start timer. Please try again.';
+          this.timerError.set(msg);
+        },
+      });
+  }
+
+  // ── Stop: manual (shows confirmation dialog) ────────────────────────────────
+
+  requestStopTimer(): void  { this.isStopConfirmOpen.set(true); }
+  cancelStopTimer(): void   { this.isStopConfirmOpen.set(false); }
+
+  confirmStopTimer(): void {
+    this.isStopConfirmOpen.set(false);
+    this._doCompleteTimer(true);
+  }
+
+  // ── Stop: automatic (Pomodoro 0:00 — no dialog, show summary) ─────────────
+
+  private autoCompleteTimer(): void {
+    // Guard: only proceed if still running (interval can tick again before PATCH returns)
+    if (this.timerStatus() !== 'running') return;
+    this._doCompleteTimer(true);
+  }
+
+  // ── Stop: leave-room (component destroy — fire-and-forget, no summary) ─────
+
+  private completeTimerOnLeave(): void {
+    const sessionId = this.timerSessionId();
+    if (!sessionId) return;
+    this.stopLocalTick();
+    this.clearSessionId();
+    // Fire-and-forget — the facade is being destroyed; we just need the HTTP request to fly
+    this.timerDataService.completeTimer(sessionId).subscribe({ error: () => {} });
+  }
+
+  // ── Shared complete implementation ─────────────────────────────────────────
+
+  private _doCompleteTimer(showSummary: boolean): void {
+    const sessionId = this.timerSessionId();
+    if (!sessionId) return;
+
+    this.timerStatus.set('completing');
+    this.stopLocalTick();
+
+    this.timerDataService.completeTimer(sessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const session = res.data!;
+          this.clearSessionId();
+          this.timerSessionId.set(null);
+          this.timerStartedAt.set(null);
+          this.timerElapsed.set(0);
+          this.timerError.set(null);
+
+          if (showSummary) {
+            this.lastSessionDuration.set(session.duration);
+            this.timerStatus.set('done');
+            // Auto-reset to idle after 4 seconds
+            setTimeout(() => {
+              if (this.timerStatus() === 'done') this.timerStatus.set('idle');
+            }, 4000);
+          } else {
+            this.timerStatus.set('idle');
+          }
+        },
+        error: (err: HttpErrorResponse) => {
+          // Roll back to running so the user can retry
+          this.timerStatus.set('running');
+          this.startLocalTick();
+          const msg = (err.error?.message as string | undefined)
+            ?? 'Failed to complete timer. Please try again.';
+          this.timerError.set(msg);
+        },
+      });
+  }
+
+  // ── Session recovery (after page reload) ───────────────────────────────────
+
+  private recoverTimerSession(): void {
+    const sessionId = this.loadSessionId();
+    if (!sessionId) return;
+
+    this.isTimerLoading.set(true);
+
+    this.timerDataService.getSession(sessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const session = res.data;
+          if (session?.status === 'RUNNING') {
+            const elapsed = Math.floor(
+              (Date.now() - new Date(session.startedAt).getTime()) / 1000,
+            );
+            this.timerSessionId.set(session.id);
+            this.timerStartedAt.set(session.startedAt);
+            this.timerElapsed.set(elapsed);
+            this.timerStatus.set('running');
+            this.startLocalTick();
+          } else {
+            // Session is already DONE or not owned by this user — clear stale entry
+            this.clearSessionId();
+          }
+          this.isTimerLoading.set(false);
+        },
+        error: () => {
+          // Session not found or unauthorized — clear stale entry
+          this.clearSessionId();
+          this.isTimerLoading.set(false);
+        },
+      });
+  }
+
+  // ── Leave-room cleanup (registered once in initialize) ─────────────────────
+
+  private registerLeaveRoomCleanup(): void {
+    this.destroyRef.onDestroy(() => {
+      if (this.timerStatus() === 'running') {
+        this.completeTimerOnLeave();
+      }
+    });
+  }
+
+  // ── Local tick (drift-corrected) ───────────────────────────────────────────
+
+  private startLocalTick(): void {
+    this.stopLocalTick();
+    this.tickIntervalId = setInterval(() => {
+      const startedAt = this.timerStartedAt();
+      if (!startedAt) return;
+
+      // Re-derive elapsed from server timestamp to avoid drift
+      const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+      this.timerElapsed.set(elapsed);
+
+      // Pomodoro auto-complete — no confirmation dialog
+      if (this.timerMode() === 'pomodoro' && elapsed >= POMODORO_DURATION) {
+        this.autoCompleteTimer();
+      }
+    }, 1000);
+  }
+
+  private stopLocalTick(): void {
+    if (!this.tickIntervalId) return;
+    clearInterval(this.tickIntervalId);
+    this.tickIntervalId = null;
+  }
+
+  // ── localStorage helpers (room-scoped) ─────────────────────────────────────
+
+  private storageKey(): string {
+    return `timer_session_id_${this.roomId()}`;
+  }
+
+  private saveSessionId(id: number): void {
+    localStorage.setItem(this.storageKey(), String(id));
+  }
+
+  private loadSessionId(): number | null {
+    const raw = localStorage.getItem(this.storageKey());
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+
+  private clearSessionId(): void {
+    localStorage.removeItem(this.storageKey());
+  }
+
+  // ── Dismiss timer error ────────────────────────────────────────────────────
+
+  dismissTimerError(): void { this.timerError.set(null); }
 
   // ── Heartbeat ──────────────────────────────────────────────────────────────
 

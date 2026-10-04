@@ -1,8 +1,16 @@
-import { Component, ChangeDetectionStrategy, signal, computed, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Clock, RotateCcw, Play, Pause, Settings } from 'lucide-angular';
+import { LucideAngularModule, Clock, Play, Square, AlertTriangle, Check, Timer } from 'lucide-angular';
+import { TimerMode, TimerLifecycle } from '../../models/timer.models';
 
-const TIMER_DURATION = 25 * 60; // 25 minutes in seconds
+const POMODORO_DURATION = 25 * 60;
+const STOPWATCH_RING_CAP = 60 * 60;
 const RING_RADIUS = 90;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
 
@@ -12,13 +20,47 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
   imports: [CommonModule, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="timer-panel" aria-label="Pomodoro Timer">
-      <div class="timer-badge">
-        <lucide-icon [img]="ClockIcon" class="timer-badge-icon"></lucide-icon>
-        <span>POMODORO FOCUS</span>
+    <section class="timer-panel" aria-label="Focus Timer">
+
+      <!-- ── Mode toggle ──────────────────────────────────────────────────── -->
+      <div class="mode-toggle" role="group" aria-label="Timer mode">
+        <button
+          id="timer-mode-pomodoro"
+          class="mode-btn"
+          [class.mode-btn--active]="mode === 'pomodoro'"
+          [disabled]="isRunning"
+          (click)="modeChange.emit('pomodoro')"
+          aria-label="Pomodoro mode (25 minutes)"
+        >
+          <lucide-icon [img]="ClockIcon" class="mode-icon"></lucide-icon>
+          Pomodoro
+        </button>
+        <button
+          id="timer-mode-stopwatch"
+          class="mode-btn"
+          [class.mode-btn--active]="mode === 'stopwatch'"
+          [disabled]="isRunning"
+          (click)="modeChange.emit('stopwatch')"
+          aria-label="Stopwatch mode"
+        >
+          <lucide-icon [img]="TimerIcon" class="mode-icon"></lucide-icon>
+          Stopwatch
+        </button>
       </div>
 
-      <div class="ring-wrapper" aria-live="polite" [attr.aria-label]="minutesDisplay() + ':' + secondsDisplay() + ' remaining'">
+      <!-- ── SVG ring + display ───────────────────────────────────────────── -->
+      <div
+        class="ring-wrapper"
+        aria-live="polite"
+        [attr.aria-label]="ariaLabel"
+      >
+        <!-- Loading overlay -->
+        @if (isLoading) {
+          <div class="ring-loading" aria-label="Loading timer state">
+            <div class="loading-spinner"></div>
+          </div>
+        }
+
         <svg class="progress-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="ring-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -36,6 +78,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
           <circle class="ring-track" cx="100" cy="100" r="90" fill="none" stroke-width="6" />
           <circle
             class="ring-progress"
+            [class.ring-progress--completing]="timerStatus === 'completing'"
             cx="100" cy="100" r="90"
             fill="none"
             stroke="url(#ring-gradient)"
@@ -43,96 +86,183 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
             stroke-linecap="round"
             filter="url(#ring-glow)"
             [style.strokeDasharray]="circumference"
-            [style.strokeDashoffset]="ringProgress()"
+            [style.strokeDashoffset]="ringOffset"
             transform="rotate(-90 100 100)"
           />
         </svg>
 
+        <!-- Inner content -->
         <div class="ring-content">
-          <span class="timer-display">{{ minutesDisplay() }}:{{ secondsDisplay() }}</span>
-          <span class="timer-label">REMAINING</span>
+          @switch (timerStatus) {
+            <!-- Done state: show completion summary -->
+            @case ('done') {
+              <lucide-icon [img]="CheckIcon" class="done-icon" aria-hidden="true"></lucide-icon>
+              <span class="done-label">Session complete!</span>
+              @if (lastSessionDuration !== null) {
+                <span class="done-duration">{{ formatDuration(lastSessionDuration) }}</span>
+              }
+            }
+            <!-- Completing: spinner + label -->
+            @case ('completing') {
+              <span class="timer-display">{{ minutesDisplay }}:{{ secondsDisplay }}</span>
+              <span class="timer-label">SAVING...</span>
+            }
+            <!-- Running or idle: clock display -->
+            @default {
+              <span class="timer-display">{{ minutesDisplay }}:{{ secondsDisplay }}</span>
+              <span class="timer-label">
+                {{ timerStatus === 'running'
+                    ? (mode === 'pomodoro' ? 'REMAINING' : 'ELAPSED')
+                    : (mode === 'pomodoro' ? '25 MIN' : 'STOPWATCH') }}
+              </span>
+            }
+          }
         </div>
       </div>
 
+      <!-- ── Error banner ─────────────────────────────────────────────────── -->
+      @if (timerError) {
+        <div class="timer-error" role="alert">
+          <lucide-icon [img]="AlertIcon" class="error-icon" aria-hidden="true"></lucide-icon>
+          <span>{{ timerError }}</span>
+          <button
+            class="error-dismiss"
+            aria-label="Dismiss error"
+            (click)="dismissError.emit()"
+          >✕</button>
+        </div>
+      }
+
+      <!-- ── Stop confirmation dialog ─────────────────────────────────────── -->
+      @if (isStopConfirmOpen) {
+        <div class="confirm-dialog" role="alertdialog" aria-labelledby="confirm-title">
+          <p id="confirm-title" class="confirm-title">Stop the session?</p>
+          <p class="confirm-sub">Your focus time will be recorded.</p>
+          <div class="confirm-actions">
+            <button
+              id="timer-cancel-stop-btn"
+              class="ctrl-btn ctrl-btn--secondary ctrl-btn--sm"
+              (click)="cancelStop.emit()"
+            >
+              Keep going
+            </button>
+            <button
+              id="timer-confirm-stop-btn"
+              class="ctrl-btn ctrl-btn--danger ctrl-btn--sm"
+              (click)="confirmStop.emit()"
+            >
+              Stop & save
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ── Controls ─────────────────────────────────────────────────────── -->
       <div class="timer-controls">
-        <button class="ctrl-btn ctrl-btn--secondary" aria-label="Reset timer" (click)="resetTimer()">
-          <lucide-icon [img]="RotateCcwIcon" class="ctrl-icon"></lucide-icon>
-        </button>
-
-        <button
-          class="ctrl-btn ctrl-btn--primary"
-          [attr.aria-label]="isRunning() ? 'Pause timer' : 'Start timer'"
-          (click)="toggleTimer()"
-        >
-          <lucide-icon [img]="isRunning() ? PauseIcon : PlayIcon" class="ctrl-icon ctrl-icon--lg"></lucide-icon>
-        </button>
-
-        <button class="ctrl-btn ctrl-btn--secondary" aria-label="Timer settings">
-          <lucide-icon [img]="SettingsIcon" class="ctrl-icon"></lucide-icon>
-        </button>
+        @if (timerStatus === 'idle' || timerStatus === 'done') {
+          <!-- Start button -->
+          <button
+            id="timer-start-btn"
+            class="ctrl-btn ctrl-btn--primary"
+            aria-label="Start focus session"
+            [disabled]="isLoading"
+            (click)="startTimer.emit()"
+          >
+            <lucide-icon [img]="PlayIcon" class="ctrl-icon ctrl-icon--lg"></lucide-icon>
+          </button>
+        } @else if (timerStatus === 'running') {
+          <!-- Stop button -->
+          <button
+            id="timer-stop-btn"
+            class="ctrl-btn ctrl-btn--stop"
+            aria-label="Stop focus session"
+            (click)="requestStop.emit()"
+          >
+            <lucide-icon [img]="SquareIcon" class="ctrl-icon ctrl-icon--lg"></lucide-icon>
+          </button>
+        } @else {
+          <!-- Completing: disabled spinner placeholder -->
+          <button
+            class="ctrl-btn ctrl-btn--primary"
+            aria-label="Saving session..."
+            disabled
+          >
+            <div class="btn-spinner"></div>
+          </button>
+        }
       </div>
+
     </section>
   `,
-  styleUrls: ['./room-timer.component.scss']
+  styleUrls: ['./room-timer.component.scss'],
 })
-export class RoomTimerComponent implements OnDestroy {
-  readonly ClockIcon = Clock;
-  readonly RotateCcwIcon = RotateCcw;
-  readonly PlayIcon = Play;
-  readonly PauseIcon = Pause;
-  readonly SettingsIcon = Settings;
+export class RoomTimerComponent {
+  // ── Icons ──────────────────────────────────────────────────────────────────
+  readonly ClockIcon     = Clock;
+  readonly TimerIcon     = Timer;
+  readonly PlayIcon      = Play;
+  readonly SquareIcon    = Square;
+  readonly AlertIcon     = AlertTriangle;
+  readonly CheckIcon     = Check;
 
-  timeLeft = signal<number>(TIMER_DURATION);
-  isRunning = signal<boolean>(false);
-  private intervalId: ReturnType<typeof setInterval> | null = null;
   readonly circumference = CIRCUMFERENCE;
 
-  readonly minutesDisplay = computed(() => Math.floor(this.timeLeft() / 60).toString().padStart(2, '0'));
-  readonly secondsDisplay = computed(() => (this.timeLeft() % 60).toString().padStart(2, '0'));
-  readonly ringProgress = computed(() => CIRCUMFERENCE * (1 - (this.timeLeft() / TIMER_DURATION)));
+  // ── Inputs ─────────────────────────────────────────────────────────────────
+  @Input() mode: TimerMode                = 'pomodoro';
+  @Input() timerStatus: TimerLifecycle    = 'idle';
+  @Input() displaySeconds: number         = POMODORO_DURATION;
+  @Input() ringFraction: number           = 1;  // 0–1
+  @Input() isLoading: boolean             = false;
+  @Input() timerError: string | null      = null;
+  @Input() lastSessionDuration: number | null = null;
+  @Input() isStopConfirmOpen: boolean     = false;
 
-  ngOnDestroy() {
-    this.clearInterval();
+  // ── Outputs ────────────────────────────────────────────────────────────────
+  @Output() startTimer   = new EventEmitter<void>();
+  @Output() requestStop  = new EventEmitter<void>();
+  @Output() confirmStop  = new EventEmitter<void>();
+  @Output() cancelStop   = new EventEmitter<void>();
+  @Output() modeChange   = new EventEmitter<TimerMode>();
+  @Output() dismissError = new EventEmitter<void>();
+
+  // ── Derived display values (pure getters, no local state) ──────────────────
+
+  get isRunning(): boolean {
+    return this.timerStatus === 'running' || this.timerStatus === 'completing';
   }
 
-  toggleTimer() {
-    if (this.isRunning()) {
-      this.pauseTimer();
-      return;
-    }
-    this.startTimer();
+  get minutesDisplay(): string {
+    return Math.floor(this.displaySeconds / 60).toString().padStart(2, '0');
   }
 
-  resetTimer() {
-    this.pauseTimer();
-    this.timeLeft.set(TIMER_DURATION);
+  get secondsDisplay(): string {
+    return (this.displaySeconds % 60).toString().padStart(2, '0');
   }
 
-  private startTimer() {
-    if (this.timeLeft() <= 0) return;
-
-    this.isRunning.set(true);
-    this.intervalId = setInterval(() => this.tick(), 1000);
+  /** Stroke-dashoffset: full offset = empty ring, 0 = full ring. */
+  get ringOffset(): number {
+    return CIRCUMFERENCE * (1 - Math.max(0, Math.min(1, this.ringFraction)));
   }
 
-  private tick() {
-    const current = this.timeLeft();
-    if (current <= 1) {
-      this.timeLeft.set(0);
-      this.pauseTimer();
-      return;
-    }
-    this.timeLeft.set(current - 1);
+  get ariaLabel(): string {
+    if (this.timerStatus === 'done') return 'Session complete';
+    const m = this.minutesDisplay;
+    const s = this.secondsDisplay;
+    return this.mode === 'pomodoro'
+      ? `${m}:${s} remaining`
+      : `${m}:${s} elapsed`;
   }
 
-  private pauseTimer() {
-    this.isRunning.set(false);
-    this.clearInterval();
-  }
-
-  private clearInterval() {
-    if (!this.intervalId) return;
-    clearInterval(this.intervalId);
-    this.intervalId = null;
+  /** Format seconds → "Xh Ym Zs" or "Xm Zs" or "Zs". */
+  formatDuration(seconds: number): string {
+    if (seconds <= 0) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+    return parts.join(' ');
   }
 }

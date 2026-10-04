@@ -9,13 +9,18 @@ $text-primary: var(--room-text-primary);
 $text-muted: var(--room-text-muted);
 $text-dim: var(--room-text-dim);
 $ring-track: rgba(255, 255, 255, 0.06);
+$danger: #ef4444;
+$danger-subtle: rgba(239, 68, 68, 0.1);
+$success: #22c55e;
+$success-subtle: rgba(34, 197, 94, 0.12);
 
+// ── Panel ──────────────────────────────────────────────────────────────────────
 .timer-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 36px 24px;
+  gap: 20px;
+  padding: 28px 24px;
   background-color: $bg-card;
   border: 1px solid $border;
   border-radius: 20px;
@@ -36,23 +41,50 @@ $ring-track: rgba(255, 255, 255, 0.06);
   }
 }
 
-.timer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background-color: $accent-subtle;
-  border: 1px solid rgba($accent-light, 0.3);
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: $accent-light;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+// ── Mode toggle ────────────────────────────────────────────────────────────────
+.mode-toggle {
+  display: flex;
+  gap: 12px;
+  padding: 4px;
+  background-color: $bg-elevated;
+  border: 1px solid $border;
+  border-radius: 10px;
+}
 
-  .timer-badge-icon {
-    width: 14px;
-    height: 14px;
+.mode-btn {
+  display: contents;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: $text-muted;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  .mode-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  &--active {
+    background-color: $accent-subtle;
+    color: $accent-light;
+    box-shadow: 0 1px 4px rgba($accent, 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover:not(.mode-btn--active) {
+    color: $text-primary;
+    background-color: rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -79,6 +111,11 @@ $ring-track: rgba(255, 255, 255, 0.06);
 
   .ring-progress {
     transition: stroke-dashoffset 1s linear;
+
+    &--completing {
+      transition: none;
+      opacity: 0.5;
+    }
   }
 }
 
@@ -109,10 +146,126 @@ $ring-track: rgba(255, 255, 255, 0.06);
   text-transform: uppercase;
 }
 
+// ── Loading overlay ───────────────────────────────────────────────────────────
+.ring-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba($bg-card, 0.7);
+  border-radius: 50%;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba($accent, 0.3);
+  border-top-color: $accent-light;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+// ── Done state ────────────────────────────────────────────────────────────────
+.done-icon {
+  width: 36px;
+  height: 36px;
+  color: $success;
+  animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.done-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $success;
+  letter-spacing: 0.02em;
+}
+
+.done-duration {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: $text-primary;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+// ── Error banner ──────────────────────────────────────────────────────────────
+.timer-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: $danger-subtle;
+  border: 1px solid rgba($danger, 0.3);
+  border-radius: 10px;
+  width: 100%;
+  font-size: 0.8rem;
+  color: $danger;
+  animation: slide-down 0.2s ease;
+
+  .error-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .error-dismiss {
+    background: none;
+    border: none;
+    color: $danger;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0 2px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// ── Stop confirmation dialog ───────────────────────────────────────────────────
+.confirm-dialog {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: $bg-elevated;
+  border: 1px solid $border;
+  border-radius: 12px;
+  animation: slide-down 0.2s ease;
+}
+
+.confirm-title {
+  margin: 0 0 2px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.confirm-sub {
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 // ── Timer Controls ────────────────────────────────────────────────────────────
 .timer-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
 }
 
@@ -132,8 +285,15 @@ $ring-track: rgba(255, 255, 255, 0.06);
   }
 
   .ctrl-icon--lg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
+  }
+
+  &--sm {
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   &--secondary {
@@ -142,6 +302,12 @@ $ring-track: rgba(255, 255, 255, 0.06);
     background-color: $bg-elevated;
     border: 1px solid $border;
     color: $text-muted;
+
+    &.ctrl-btn--sm {
+      width: auto;
+      height: auto;
+      color: $text-muted;
+    }
 
     &:hover {
       background-color: $accent-subtle;
@@ -175,10 +341,97 @@ $ring-track: rgba(255, 255, 255, 0.06);
     &:active {
       transform: scale(0.95);
     }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      animation: none;
+    }
+  }
+
+  &--stop {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+
+    &:hover {
+      transform: scale(1.07);
+      box-shadow: 0 8px 36px rgba(239, 68, 68, 0.55);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  &--danger {
+    background-color: $danger;
+    color: #fff;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    width: auto;
+    height: auto;
+    border: 1px solid transparent;
+
+    &:hover {
+      background-color: #dc2626;
+      transform: none;
+    }
+  }
+
+  .btn-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
   }
 }
 
+// ── Animations ────────────────────────────────────────────────────────────────
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 $accent-glow, 0 8px 32px $accent-glow; }
-  50%       { box-shadow: 0 0 0 10px rgba($accent, 0.12), 0 8px 40px rgba($accent, 0.5); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 $accent-glow, 0 8px 32px $accent-glow;
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba($accent, 0.12), 0 8px 40px rgba($accent, 0.5);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
