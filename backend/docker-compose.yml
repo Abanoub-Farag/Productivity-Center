@@ -1,34 +1,57 @@
 services:
-
   backend:
     build: .
     ports:
       - "8080:8080"
+    env_file:
+      - .env.example
     environment:
       DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: test_docker
-      DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.example
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: test_docker
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     ports:
-      - "5432:5432"
+      - "${DB_HOST_PORT}:${DB_PORT}"
     volumes:
       - database_volume:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.example
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT}:${REDIS_PORT}"
 
 volumes:
   database_volume:
