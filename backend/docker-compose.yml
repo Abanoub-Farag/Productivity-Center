@@ -4,7 +4,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env.example
+      - .env
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-5432}
@@ -23,7 +23,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
-      - .env.example
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -43,7 +43,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     env_file:
-      - .env.example
+      - .env
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
