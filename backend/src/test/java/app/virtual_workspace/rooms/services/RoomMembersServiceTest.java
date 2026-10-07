@@ -73,13 +73,20 @@ public class RoomMembersServiceTest {
     class JoinRoomTests {
 
         @Test
-        @DisplayName("Should return early and not save when user is already a room member")
+        @DisplayName("Should update status to ONLINE when user is already a room member")
         void joinRoom_shouldDoNothing_whenUserAlreadyMember() {
             when(roomMembersRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(true);
+            when(roomMembersRepository.findByUserIdAndRoomId(1L, 10L))
+                    .thenReturn(Optional.of(RoomMembers.builder()
+                            .user(sampleUser)
+                            .room(sampleRoom)
+                            .status(Status.OFFLINE)
+                            .build()));
 
             roomMembersService.joinRoom(1L, 10L);
 
             verify(roomMembersRepository, times(1)).existsByUserIdAndRoomId(1L, 10L);
+            verify(roomMembersRepository, times(1)).findByUserIdAndRoomId(1L, 10L);
             verify(roomRepository, never()).findById(any());
             verify(roomMembersRepository, never()).save(any());
         }

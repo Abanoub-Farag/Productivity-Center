@@ -65,6 +65,9 @@ export class RoomDetailFacade {
   readonly heartbeatStatus = signal<'active' | 'retrying' | 'failed'>('active');
   readonly heartbeatErrorMessage = signal<string | null>(null);
 
+  /** Wired by the host component to refresh the members list on each heartbeat success. */
+  onHeartbeatSuccess: (() => void) | null = null;
+
   // ── Task state ────────────────────────────────────────────────────────────
   readonly tasks = signal<TaskData[]>([]);
   readonly isTasksLoading = signal<boolean>(true);
@@ -673,6 +676,7 @@ export class RoomDetailFacade {
           consecutiveFailures = 0;
           this.heartbeatStatus.set('active');
           this.heartbeatErrorMessage.set(null);
+          this.onHeartbeatSuccess?.();
         }
       });
   }

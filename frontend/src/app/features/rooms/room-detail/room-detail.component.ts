@@ -1,6 +1,8 @@
 import {
   Component,
   OnInit,
+  AfterViewInit,
+  ViewChild,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -34,7 +36,7 @@ import { TaskData } from '../models/rooms.models';
   styleUrls: ['./room-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RoomDetailComponent implements OnInit {
+export class RoomDetailComponent implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -43,6 +45,9 @@ export class RoomDetailComponent implements OnInit {
 
   // ── Only icons used directly in this template (modals) ─────────────────────
   readonly XIcon = X;
+
+  @ViewChild(RoomMembersListComponent)
+  private membersListRef!: RoomMembersListComponent;
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -56,6 +61,11 @@ export class RoomDetailComponent implements OnInit {
     } else {
       this.router.navigate(['/404'], { replaceUrl: true });
     }
+  }
+
+  ngAfterViewInit(): void {
+    // Wire members list refresh — called by the facade on every successful heartbeat.
+    this.roomState.onHeartbeatSuccess = () => this.membersListRef?.fetchMembers();
   }
 
   // ── Thin template event handlers (delegate to facade) ─────────────────────

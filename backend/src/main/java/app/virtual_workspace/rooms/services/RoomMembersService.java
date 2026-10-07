@@ -3,8 +3,6 @@ package app.virtual_workspace.rooms.services;
 import java.time.Instant;
 import java.util.List;
 
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +25,12 @@ public class RoomMembersService {
     private final UserReferenceProvider userReferenceProvider;
 
     @Transactional
-    @CacheEvict(value = "room_members", key = "#roomId")
     public void joinRoom(Long userId, Long roomId) {
 
         if (roomMembersRepository.existsByUserIdAndRoomId(userId, roomId)) {
+            RoomMembers existing = roomMembersRepository.findByUserIdAndRoomId(userId, roomId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Member not found in this room"));
+            existing.setStatus(Status.ONLINE);
             return;
         }
 
@@ -59,7 +59,6 @@ public class RoomMembersService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "room_members", key = "#roomId")
     public List<RoomMemberDto> getRoomMembers(Long roomId) {
         return roomMembersRepository.findByRoomIdWithProfileAndUser(roomId);
     }
