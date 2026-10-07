@@ -9,7 +9,6 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Clock, Play, Square, AlertTriangle, Check, Timer } from 'lucide-angular';
 import { TimerMode, TimerLifecycle } from '../../models/timer.models';
 
-const POMODORO_DURATION = 25 * 60;
 const STOPWATCH_RING_CAP = 60 * 60;
 const RING_RADIUS = 90;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
@@ -113,12 +112,28 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
               <span class="timer-label">
                 {{ timerStatus === 'running'
                     ? (mode === 'pomodoro' ? 'REMAINING' : 'ELAPSED')
-                    : (mode === 'pomodoro' ? '25 MIN' : 'STOPWATCH') }}
+                    : (mode === 'pomodoro' ? (pomodoroDuration / 60) + ' MIN' : 'STOPWATCH') }}
               </span>
             }
           }
         </div>
       </div>
+
+      <!-- ── Settings (Pomodoro Duration Input) ───────────────────────────── -->
+      @if (mode === 'pomodoro' && (timerStatus === 'idle' || timerStatus === 'done')) {
+        <div class="pomodoro-settings">
+          <label for="pomodoro-duration">Duration (min):</label>
+          <input
+            id="pomodoro-duration"
+            type="number"
+            min="1"
+            max="120"
+            [value]="pomodoroDuration / 60"
+            (change)="onDurationChange($event)"
+            class="duration-input"
+          />
+        </div>
+      }
 
       <!-- ── Error banner ─────────────────────────────────────────────────── -->
       @if (timerError) {
@@ -210,7 +225,8 @@ export class RoomTimerComponent {
   // ── Inputs ─────────────────────────────────────────────────────────────────
   @Input() mode: TimerMode                = 'pomodoro';
   @Input() timerStatus: TimerLifecycle    = 'idle';
-  @Input() displaySeconds: number         = POMODORO_DURATION;
+  @Input() displaySeconds: number         = 25 * 60;
+  @Input() pomodoroDuration: number       = 25 * 60;
   @Input() ringFraction: number           = 1;  // 0–1
   @Input() isLoading: boolean             = false;
   @Input() timerError: string | null      = null;
@@ -224,8 +240,17 @@ export class RoomTimerComponent {
   @Output() cancelStop   = new EventEmitter<void>();
   @Output() modeChange   = new EventEmitter<TimerMode>();
   @Output() dismissError = new EventEmitter<void>();
+  @Output() pomodoroDurationChange = new EventEmitter<number>();
 
   // ── Derived display values (pure getters, no local state) ──────────────────
+
+  onDurationChange(event: Event) {
+    const val = (event.target as HTMLInputElement).value;
+    const mins = parseInt(val, 10);
+    if (!isNaN(mins) && mins > 0) {
+      this.pomodoroDurationChange.emit(mins * 60);
+    }
+  }
 
   get isRunning(): boolean {
     return this.timerStatus === 'running' || this.timerStatus === 'completing';

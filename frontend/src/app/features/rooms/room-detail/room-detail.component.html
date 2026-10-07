@@ -32,6 +32,7 @@
         [mode]="roomState.timerMode()"
         [timerStatus]="roomState.timerStatus()"
         [displaySeconds]="roomState.timerDisplaySeconds()"
+        [pomodoroDuration]="roomState.pomodoroDuration()"
         [ringFraction]="roomState.timerRingFraction()"
         [isLoading]="roomState.isTimerLoading()"
         [timerError]="roomState.timerError()"
@@ -42,6 +43,7 @@
         (confirmStop)="roomState.confirmStopTimer()"
         (cancelStop)="roomState.cancelStopTimer()"
         (modeChange)="roomState.setTimerMode($event)"
+        (pomodoroDurationChange)="roomState.setPomodoroDuration($event)"
         (dismissError)="roomState.dismissTimerError()"
       ></app-room-timer>
 

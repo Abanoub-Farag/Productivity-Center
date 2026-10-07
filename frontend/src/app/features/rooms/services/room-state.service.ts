@@ -17,8 +17,8 @@ type HeartbeatResult =
   | { isError: false }
   | { isError: true; error: HttpErrorResponse };
 
-/** Duration of the Pomodoro session in seconds (25 min). */
-const POMODORO_DURATION = 25 * 60;
+/** Default duration of the Pomodoro session in seconds (25 min). */
+const DEFAULT_POMODORO_DURATION = 25 * 60;
 
 /** Full-ring cap for the stopwatch SVG ring (60 min). */
 const STOPWATCH_RING_CAP = 60 * 60;
@@ -87,12 +87,13 @@ export class RoomDetailFacade {
   readonly isTimerLoading     = signal<boolean>(false);
   readonly isStopConfirmOpen  = signal<boolean>(false);
   readonly lastSessionDuration = signal<number | null>(null); // seconds
+  readonly pomodoroDuration   = signal<number>(DEFAULT_POMODORO_DURATION);
 
   /** Seconds left (Pomodoro) or elapsed (Stopwatch) — drives the display and ring. */
   readonly timerDisplaySeconds = computed(() => {
     const elapsed = this.timerElapsed();
     return this.timerMode() === 'pomodoro'
-      ? Math.max(0, POMODORO_DURATION - elapsed)
+      ? Math.max(0, this.pomodoroDuration() - elapsed)
       : Math.min(elapsed, STOPWATCH_RING_CAP);
   });
 
@@ -100,7 +101,7 @@ export class RoomDetailFacade {
   readonly timerRingFraction = computed(() => {
     const elapsed = this.timerElapsed();
     return this.timerMode() === 'pomodoro'
-      ? Math.max(0, (POMODORO_DURATION - elapsed) / POMODORO_DURATION)
+      ? Math.max(0, (this.pomodoroDuration() - elapsed) / this.pomodoroDuration())
       : Math.min(elapsed, STOPWATCH_RING_CAP) / STOPWATCH_RING_CAP;
   });
 
@@ -421,6 +422,12 @@ export class RoomDetailFacade {
     this.timerError.set(null);
   }
 
+  /** Set the Pomodoro duration in seconds */
+  setPomodoroDuration(durationSeconds: number): void {
+    if (this.timerStatus() === 'running') return;
+    this.pomodoroDuration.set(durationSeconds);
+  }
+
   /** Start a new timer session on the backend, then begin local tick. */
   startTimer(): void {
     const roomId = this.roomId();
@@ -583,7 +590,7 @@ export class RoomDetailFacade {
       this.timerElapsed.set(elapsed);
 
       // Pomodoro auto-complete — no confirmation dialog
-      if (this.timerMode() === 'pomodoro' && elapsed >= POMODORO_DURATION) {
+      if (this.timerMode() === 'pomodoro' && elapsed >= this.pomodoroDuration()) {
         this.autoCompleteTimer();
       }
     }, 1000);
