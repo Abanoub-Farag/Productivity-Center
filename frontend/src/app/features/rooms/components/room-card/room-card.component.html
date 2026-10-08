@@ -45,11 +45,10 @@
 
   <div class="room-card__footer">
     <button
-      class="btn"
-      [ngClass]="room().actionType === 'join' ? 'btn--primary' : 'btn--outline'"
+      class="btn btn--primary"
       (click)="handleAction()">
-      {{ room().actionType === 'join' ? 'Join Room' : 'View Room' }}
-      <lucide-icon [img]="room().actionType === 'join' ? ArrowRightIcon : EyeIcon" class="btn-icon"></lucide-icon>
+      Join Room
+      <lucide-icon [img]="ArrowRightIcon" class="btn-icon"></lucide-icon>
     </button>
   </div>
 </div>
