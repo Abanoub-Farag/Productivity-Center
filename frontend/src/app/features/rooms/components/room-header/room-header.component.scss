@@ -137,13 +137,13 @@ $green-live-bg: var(--room-green-live-bg);
 }
 
 .favorite-btn.active {
-  color: #EF4444;
+  color: var(--clr-error);
   border-color: rgba(239, 68, 68, 0.4);
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: var(--clr-error-bg);
 }
 
 .favorite-btn.active .btn-icon {
-  fill: #EF4444;
+  fill: var(--clr-error);
 }
 
 .notification-btn {
@@ -159,22 +159,35 @@ $green-live-bg: var(--room-green-live-bg);
   right: 4px;
   width: 8px;
   height: 8px;
-  background-color: #EF4444;
+  background-color: var(--clr-error);
   border: 2px solid $bg-card;
   border-radius: 50%;
 }
 
 .edit-room-btn:hover {
   color: $accent-light;
-  background-color: rgba(139, 92, 246, 0.15);
+  background-color: rgba(61, 82, 160, 0.15);
 }
 
 .delete-room-btn:hover {
-  color: #EF4444;
-  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--clr-error);
+  background-color: var(--clr-error-bg);
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+@media (max-width: 768px) {
+  .session-header {
+    padding: 12px 16px;
+  }
+  .header-room-title {
+    max-width: 160px;
+    font-size: 0.95rem;
+  }
+  .header-right {
+    gap: 8px;
+  }
 }

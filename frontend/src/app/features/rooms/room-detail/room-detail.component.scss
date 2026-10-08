@@ -50,6 +50,21 @@ $text-dim: var(--room-text-dim);
   }
 }
 
+@media (max-width: 768px) {
+  .session-layout {
+    flex-direction: column;
+  }
+  .session-main {
+    padding-bottom: 64px; /* Space for bottom nav */
+  }
+  .session-body {
+    padding: 16px;
+    gap: 16px;
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
 .split-panel {
   background-color: $bg-card;
   border: 1px solid $border;
@@ -86,7 +101,7 @@ $text-dim: var(--room-text-dim);
 }
 
 .modal-card--danger {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: var(--clr-error);
 }
 
 .modal-header {
@@ -121,7 +136,7 @@ $text-dim: var(--room-text-dim);
 }
 
 .form-control {
-  background-color: rgba(26, 25, 51, 0.8);
+  background-color: var(--clr-input-bg);
   border: 1px solid $border-muted;
   border-radius: 8px;
   padding: 10px 12px;
@@ -153,10 +168,10 @@ $text-dim: var(--room-text-dim);
 
 .modal-error {
   padding: 10px 12px;
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: var(--clr-error-bg);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 8px;
-  color: #EF4444;
+  color: var(--clr-error);
   font-size: 0.8125rem;
 }
 
@@ -185,7 +200,7 @@ $text-dim: var(--room-text-dim);
 }
 
 .btn-danger {
-  background-color: #EF4444;
+  background-color: var(--clr-error);
   border: none;
   color: #fff;
   padding: 8px 16px;

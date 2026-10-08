@@ -3,14 +3,7 @@
 // ─── Host Containment ────────────────────────────────────────────────────────
 :host { display: block; }
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-$bg-main:        #0d0e1a;
-$bg-card:        #141624;
-$border-color:   #21253b;
-$primary-accent: #8a3ffc;
-$error-color:    #f87171;
-$text-primary:   #ffffff;
-$text-secondary: #9ca3af;
+
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 .layout-container {
@@ -18,8 +11,8 @@ $text-secondary: #9ca3af;
   height: 100vh;
   width: 100%;
   overflow: hidden;
-  background-color: $bg-main;
-  color: $text-primary;
+  background-color: var(--clr-page-bg);
+  color: var(--clr-text-primary);
 }
 
 .layout-sidebar { flex-shrink: 0; }
@@ -49,7 +42,7 @@ $text-secondary: #9ca3af;
 
   .back-link {
     display: inline-block;
-    color: $primary-accent;
+    color: var(--clr-action);
     text-decoration: none;
     font-size: 0.875rem;
     margin-bottom: 1rem;
@@ -61,7 +54,7 @@ $text-secondary: #9ca3af;
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
-    color: $text-primary;
+    color: var(--clr-text-primary);
   }
 }
 
@@ -73,16 +66,16 @@ $text-secondary: #9ca3af;
   gap: 0.75rem;
   padding: 2.5rem;
   text-align: center;
-  color: $text-secondary;
-  background-color: $bg-card;
-  border: 1px solid $border-color;
+  color: var(--clr-text-muted);
+  background-color: var(--clr-card-body);
+  border: 1px solid var(--clr-nav-border);
   border-radius: 12px;
   margin-bottom: 2rem;
 
   &.error {
-    color: $error-color;
-    background-color: rgba($error-color, 0.08);
-    border-color: rgba($error-color, 0.2);
+    color: var(--clr-error);
+    background-color: var(--clr-error-bg);
+    border-color: var(--clr-error);
     gap: 0.5rem;
     padding: 3rem 2.5rem;
 
@@ -95,13 +88,13 @@ $text-secondary: #9ca3af;
     .error-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: $error-color;
+      color: var(--clr-error);
       margin: 0;
     }
 
     .error-hint {
       font-size: 0.875rem;
-      color: $text-secondary;
+      color: var(--clr-text-muted);
       margin: 0 0 0.75rem;
       max-width: 36ch;
     }
@@ -112,8 +105,8 @@ $text-secondary: #9ca3af;
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba($primary-accent, 0.2);
-  border-top-color: $primary-accent;
+  border: 3px solid rgba(61, 82, 160, 0.2);
+  border-top-color: var(--clr-action);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
 }
@@ -131,7 +124,7 @@ $text-secondary: #9ca3af;
     width: 90px;
     height: 90px;
     border-radius: 50%;
-    background: linear-gradient(135deg, $primary-accent, color.scale($primary-accent, $lightness: 20%));
+    background: linear-gradient(135deg, var(--clr-action), var(--clr-primary-dark));
     padding: 3px;
     margin-bottom: 1rem;
     display: flex;
@@ -141,7 +134,7 @@ $text-secondary: #9ca3af;
     .avatar {
       width: 100%;
       height: 100%;
-      background-color: $bg-card;
+      background-color: var(--clr-card-body);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -151,7 +144,7 @@ $text-secondary: #9ca3af;
       .avatar-text {
         font-size: 2rem;
         font-weight: 600;
-        color: $text-primary;
+        color: var(--clr-text-primary);
       }
 
       img {
@@ -168,7 +161,7 @@ $text-secondary: #9ca3af;
       width: 14px;
       height: 14px;
       background-color: #10b981;
-      border: 2px solid $bg-card;
+      border: 2px solid var(--clr-card-body);
       border-radius: 50%;
     }
   }
@@ -196,8 +189,8 @@ $text-secondary: #9ca3af;
 
 // ─── Profile Card ─────────────────────────────────────────────────────────────
 .profile-card {
-  background-color: $bg-card;
-  border: 1px solid $border-color;
+  background-color: var(--clr-card-body);
+  border: 1px solid var(--clr-nav-border);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -210,11 +203,11 @@ $text-secondary: #9ca3af;
       margin: 0 0 0.25rem 0;
       font-size: 1rem;
       font-weight: 500;
-      color: $text-primary;
+      color: var(--clr-text-primary);
     }
 
     .subtitle {
-      color: $text-secondary;
+      color: var(--clr-text-muted);
       font-size: 0.75rem;
       margin: 0;
     }
@@ -229,7 +222,7 @@ $text-secondary: #9ca3af;
 
   .card-footer {
     padding: 1rem 1.5rem;
-    border-top: 1px solid $border-color;
+    border-top: 1px solid var(--clr-nav-border);
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -258,10 +251,10 @@ $text-secondary: #9ca3af;
   label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: $text-primary;
+    color: var(--clr-text-primary);
 
     .required-mark {
-      color: $error-color;
+      color: var(--clr-error);
       margin-left: 2px;
     }
   }
@@ -273,7 +266,7 @@ $text-secondary: #9ca3af;
     border: 1px solid rgba(#ffffff, 0.08);
     border-radius: 8px;
     padding: 0.75rem 1rem;
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-family: inherit;
     font-size: 0.875rem;
     transition: border-color 0.2s, background-color 0.2s;
@@ -282,11 +275,11 @@ $text-secondary: #9ca3af;
 
     &:focus {
       outline: none;
-      border-color: rgba($primary-accent, 0.6);
+      border-color: var(--clr-action);
       background-color: rgba(#ffffff, 0.05);
     }
 
-    &::placeholder { color: #4b5563; }
+    &::placeholder { color: var(--clr-text-muted); }
 
     &:disabled {
       opacity: 0.5;
@@ -294,8 +287,8 @@ $text-secondary: #9ca3af;
     }
 
     &.is-invalid {
-      border-color: rgba($error-color, 0.6);
-      background-color: rgba($error-color, 0.04);
+      border-color: var(--clr-error);
+      background-color: var(--clr-error-bg);
     }
   }
 
@@ -309,11 +302,11 @@ $text-secondary: #9ca3af;
     cursor: pointer;
 
     option {
-      background-color: $bg-card;
-      color: $text-primary;
+      background-color: var(--clr-input-bg);
+      color: var(--clr-text-primary);
 
       &:disabled {
-        color: $text-secondary;
+        color: var(--clr-text-muted);
       }
     }
   }
@@ -334,7 +327,7 @@ $text-secondary: #9ca3af;
       left: 1rem;
       width: 16px;
       height: 16px;
-      color: $text-secondary;
+      color: var(--clr-text-muted);
       pointer-events: none;
     }
 
@@ -346,7 +339,7 @@ $text-secondary: #9ca3af;
 .form-error {
   display: block;
   font-size: 0.7rem;
-  color: $error-color;
+  color: var(--clr-error);
   margin-top: 0.1rem;
   line-height: 1.4;
   overflow-wrap: break-word;
@@ -369,33 +362,33 @@ $text-secondary: #9ca3af;
   border: 1px solid rgba(#ffffff, 0.08);
   border-radius: 8px;
   background-color: rgba(#ffffff, 0.03);
-  color: $text-secondary;
+  color: var(--clr-text-muted);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
 
   &:hover {
-    border-color: rgba($primary-accent, 0.4);
-    background-color: rgba($primary-accent, 0.06);
-    color: $text-primary;
+    border-color: var(--clr-action);
+    background-color: rgba(61, 82, 160, 0.06);
+    color: var(--clr-text-primary);
   }
 
   &.selected {
-    border-color: rgba($primary-accent, 0.7);
-    background-color: rgba($primary-accent, 0.12);
-    color: $text-primary;
+    border-color: var(--clr-action);
+    background-color: rgba(61, 82, 160, 0.12);
+    color: var(--clr-text-primary);
 
-    .radio-icon { color: $primary-accent; }
+    .radio-icon { color: var(--clr-action); }
   }
 
   &.is-invalid {
-    border-color: rgba($error-color, 0.5);
+    border-color: var(--clr-error);
   }
 
   .radio-icon {
     font-size: 1rem;
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     transition: color 0.2s;
   }
 }
@@ -430,11 +423,11 @@ $text-secondary: #9ca3af;
   min-width: 7rem;
 
   &.btn-primary {
-    background-color: $primary-accent;
-    color: #ffffff;
+    background-color: var(--clr-action);
+    color: var(--clr-action-text);
 
     &:hover:not(:disabled) {
-      background-color: color.scale($primary-accent, $lightness: 10%);
+      background-color: var(--clr-action-hover);
     }
 
     &:disabled {
@@ -445,7 +438,7 @@ $text-secondary: #9ca3af;
 
   &.btn-ghost {
     background-color: transparent;
-    color: $text-primary;
+    color: var(--clr-text-primary);
 
     &:hover:not(:disabled) {
       background-color: rgba(#ffffff, 0.05);
@@ -473,4 +466,23 @@ $text-secondary: #9ca3af;
 // ─── Keyframes ────────────────────────────────────────────────────────────────
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  .layout-main {
+    padding-bottom: 64px;
+  }
+  .content-area {
+    padding: 16px;
+  }
+  .card-header, .card-body, .card-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .hero-header {
+    margin-bottom: 2rem;
+  }
 }
