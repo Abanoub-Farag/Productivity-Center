@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject, OnInit } from '@angular/core';
+import { Component, computed, signal, inject, OnInit, HostListener } from '@angular/core';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { TopNavComponent } from './components/top-nav/top-nav.component';
 import { RoomCardComponent } from './components/room-card/room-card.component';
@@ -50,6 +50,24 @@ export class RoomsViewComponent implements OnInit {
 
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
+  }
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    if (this.facade.isLoading() || this.facade.isFetchingMore() || this.facade.isLastPage()) return;
+    
+    // Check if scrolled near bottom (within 200px)
+    const pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
+    const max = document.documentElement.scrollHeight;
+    
+    if (pos >= max - 200) {
+      const nextPage = this.facade.currentPage() + 1;
+      if (this.activeTab() === 'Favorites') {
+        this.facade.loadFavorites(nextPage);
+      } else {
+        this.facade.loadRooms(nextPage);
+      }
+    }
   }
 
   onRoomAction(roomId: string): void {

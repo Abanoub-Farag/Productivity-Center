@@ -23,13 +23,14 @@ export class RoomsFacade {
 
   readonly rooms = signal<Room[]>([]);
   readonly isLoading = signal<boolean>(true);
+  readonly isFetchingMore = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
   readonly favoriteRoomIds = signal<Set<string>>(new Set());
-  readonly favPage = signal<number>(0);
-  readonly favTotalPages = signal<number>(1);
-  readonly favIsFirst = signal<boolean>(true);
-  readonly favIsLast = signal<boolean>(true);
+  readonly currentPage = signal<number>(0);
+  readonly totalPages = signal<number>(1);
+  readonly isFirstPage = signal<boolean>(true);
+  readonly isLastPage = signal<boolean>(true);
 
   /** Delegates to RoomsDataService — single source of truth for the user's active room. */
   readonly userRoomId = this.data.userRoomId;
@@ -61,14 +62,19 @@ export class RoomsFacade {
           const favContent: FavoriteRoomItem[] = res.data?.content ?? [];
           const set = new Set(favContent.map((f) => f.roomId.toString()));
           this.favoriteRoomIds.set(set);
-          return this.data.getRooms(0, 50);
+          return this.data.getRooms(0, 20);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (response) => {
+          const d = response.data;
+          this.isFirstPage.set(d?.first ?? true);
+          this.isLastPage.set(d?.last ?? true);
+          this.totalPages.set(d?.totalPages ?? 1);
+
           const favSet = this.favoriteRoomIds();
-          const fetchedRooms = response.data?.content ?? [];
+          const fetchedRooms = d?.content ?? [];
           const mapped: Room[] = fetchedRooms
             .filter((r: RoomData) => r.id != null)
             .map((r: RoomData) => ({
@@ -80,8 +86,10 @@ export class RoomsFacade {
               isFavorite: favSet.has(r.id.toString()),
               ownerId: r.ownerId,
             }));
+          this.rooms.update(list => [...list, ...mapped]); // Wait, loadAll is page 0 so we just set it.
           this.rooms.set(mapped);
           this.isLoading.set(false);
+          this.isFetchingMore.set(false);
         },
         error: () => {
           this.error.set('Failed to load rooms.');
@@ -90,16 +98,24 @@ export class RoomsFacade {
       });
   }
 
-  loadRooms(): void {
-    this.isLoading.set(true);
+  loadRooms(page = 0): void {
+    if (page === 0) this.isLoading.set(true);
+    else this.isFetchingMore.set(true);
+    
     this.error.set(null);
+    this.currentPage.set(page);
 
-    this.data.getRooms(0, 50)
+    this.data.getRooms(page, 20)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
+          const d = response.data;
+          this.isFirstPage.set(d?.first ?? true);
+          this.isLastPage.set(d?.last ?? true);
+          this.totalPages.set(d?.totalPages ?? 1);
+
           const favSet = this.favoriteRoomIds();
-          const fetchedRooms = response.data?.content ?? [];
+          const fetchedRooms = d?.content ?? [];
           const mapped: Room[] = fetchedRooms
             .filter((r: RoomData) => r.id != null)
             .map((r: RoomData) => ({
@@ -139,9 +155,11 @@ export class RoomsFacade {
   }
 
   loadFavorites(page = 0): void {
-    this.isLoading.set(true);
+    if (page === 0) this.isLoading.set(true);
+    else this.isFetchingMore.set(true);
+
     this.error.set(null);
-    this.favPage.set(page);
+    this.currentPage.set(page);
 
     this.favService.getFavorites(page, 20)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -149,25 +167,27 @@ export class RoomsFacade {
         next: (response) => {
           const d = response.data;
           const items: FavoriteRoomItem[] = d?.content ?? [];
-          this.favIsFirst.set(d?.first ?? true);
-          this.favIsLast.set(d?.last ?? true);
-          this.favTotalPages.set(d?.totalPages ?? 1);
+          this.isFirstPage.set(d?.first ?? true);
+          this.isLastPage.set(d?.last ?? true);
+          this.totalPages.set(d?.totalPages ?? 1);
 
           const mapped: Room[] = items.map((f) => ({
             id: f.roomId.toString(),
             title: f.title ?? 'Untitled Room',
             description: f.description ?? 'No description provided.',
-            tags: ['favorite'],
+            tags: [],
             visibility: 'PUBLIC',
             isFavorite: true,
             addedAt: f.addedAt,
           }));
-          this.rooms.set(mapped);
+          this.rooms.update(list => page === 0 ? mapped : [...list, ...mapped]);
           this.isLoading.set(false);
+          this.isFetchingMore.set(false);
         },
         error: (err: HttpErrorResponse) => {
           this.error.set(this.extractErrorMessage(err, 'Failed to load favorite rooms.'));
           this.isLoading.set(false);
+          this.isFetchingMore.set(false);
         },
       });
   }
