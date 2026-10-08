@@ -1,28 +1,9 @@
-@use "sass:color";
-
-:host {
-  display: block;
-  height: 100%;
-}
-
-// CSS custom property tokens (used for most styling, respects the design token system)
-$bg-card: var(--room-bg-card, #141624);
-$bg-card-hover: var(--room-bg-elevated, #1b1e32);
-$border-color: var(--room-border, #21253b);
-$primary-accent: var(--room-accent, #8a3ffc);
-$text-primary: var(--room-text-primary, #ffffff);
-$text-secondary: var(--room-text-dim, #9ca3af);
-
-// Raw hex values required for SCSS compile-time functions (color.scale, rgba)
-$_accent-hex: #8a3ffc;
-$_border-hex: #21253b;
-
 $status-active: #10b981;
-$status-idle: #6b7280;
+$status-idle: var(--clr-text-secondary);
 
 .room-card {
-  background-color: $bg-card;
-  border: 1px solid $border-color;
+  background-color: var(--clr-card-body);
+  border: 1px solid var(--clr-nav-border);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -32,9 +13,8 @@ $status-idle: #6b7280;
   height: 100%;
 
   &.hover-effect:hover {
-    background-color: $bg-card-hover;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--clr-shadow-card);
   }
 
   &__header {
@@ -59,7 +39,7 @@ $status-idle: #6b7280;
   }
 
   &__title {
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
@@ -73,7 +53,7 @@ $status-idle: #6b7280;
   }
 
   &__description {
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
     margin: 0;
@@ -95,14 +75,14 @@ $status-idle: #6b7280;
     align-items: center;
     margin-top: auto;
     padding-top: 16px;
-    border-top: 1px solid rgba($border-color, 0.5);
+    border-top: 1px solid var(--clr-nav-border);
   }
 
   &__count {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     font-size: 0.875rem;
 
     .icon {
@@ -127,9 +107,9 @@ $status-idle: #6b7280;
   }
 
   &--idle {
-    background-color: rgba($status-idle, 0.15);
-    color: $status-idle;
-    border: 1px solid rgba($status-idle, 0.3);
+    background-color: var(--clr-nav-btn);
+    color: var(--clr-text-secondary);
+    border: 1px solid var(--clr-nav-btn-border);
   }
 
   &--private {
@@ -150,10 +130,10 @@ $status-idle: #6b7280;
 }
 
 .tag {
-  color: $primary-accent;
+  color: var(--clr-action);
   font-size: 0.75rem;
   font-weight: 500;
-  background-color: rgba($primary-accent, 0.1);
+  background-color: rgba(112, 145, 230, 0.1);
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -164,22 +144,22 @@ $status-idle: #6b7280;
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
-  color: #6B7280;
+  color: var(--clr-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.1);
-    color: #EF4444;
+    background: var(--clr-error-bg);
+    color: var(--clr-error);
   }
 
   &.active {
-    color: #EF4444;
+    color: var(--clr-error);
 
     .favorite-icon {
-      fill: #EF4444;
+      fill: var(--clr-error);
     }
   }
 
@@ -200,15 +180,15 @@ $status-idle: #6b7280;
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
-  color: $text-secondary;
+  color: var(--clr-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba($_accent-hex, 0.12);
-    color: $_accent-hex;
+    background: rgba(112, 145, 230, 0.12);
+    color: var(--clr-action);
   }
 
   .edit-icon {
@@ -219,7 +199,7 @@ $status-idle: #6b7280;
 
 .added-at {
   font-size: 0.75rem;
-  color: $text-secondary;
+  color: var(--clr-text-muted);
   margin-top: 4px;
 }
 
@@ -242,22 +222,22 @@ $status-idle: #6b7280;
   }
 
   &--primary {
-    background-color: $primary-accent;
-    color: $text-primary;
+    background-color: var(--clr-action);
+    color: var(--clr-action-text);
 
     &:hover {
-      background-color: color.scale($_accent-hex, $lightness: -10%);
+      background-color: var(--clr-action-hover);
     }
   }
 
   &--outline {
     background-color: transparent;
-    color: $text-primary;
-    border: 1px solid $border-color;
+    color: var(--clr-text-primary);
+    border: 1px solid var(--clr-nav-border);
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-      border-color: color.scale($_border-hex, $lightness: 10%);
+      background-color: var(--clr-nav-btn);
+      border-color: var(--clr-text-muted);
     }
   }
 }

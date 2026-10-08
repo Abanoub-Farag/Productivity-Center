@@ -62,8 +62,6 @@ export class RoomDetailFacade {
   readonly roomDeleteError = signal<string | null>(null);
 
   // ── Heartbeat state ────────────────────────────────────────────────────────
-  readonly heartbeatStatus = signal<'active' | 'retrying' | 'failed'>('active');
-  readonly heartbeatErrorMessage = signal<string | null>(null);
 
   /** Wired by the host component to refresh the members list on each heartbeat success. */
   onHeartbeatSuccess: (() => void) | null = null;
@@ -80,7 +78,9 @@ export class RoomDetailFacade {
 
   // ── Timer state ────────────────────────────────────────────────────────────
 
-  readonly timerMode          = signal<TimerMode>('pomodoro');
+  readonly timerMode          = signal<TimerMode>(
+    (localStorage.getItem('preferred_timer_mode') as TimerMode) || 'pomodoro'
+  );
   readonly timerStatus        = signal<TimerLifecycle>('idle');
   readonly timerSessionId     = signal<number | null>(null);
   /** ISO-8601 instant from the server — used for drift-corrected elapsed calculation. */
@@ -90,7 +90,9 @@ export class RoomDetailFacade {
   readonly isTimerLoading     = signal<boolean>(false);
   readonly isStopConfirmOpen  = signal<boolean>(false);
   readonly lastSessionDuration = signal<number | null>(null); // seconds
-  readonly pomodoroDuration   = signal<number>(DEFAULT_POMODORO_DURATION);
+  readonly pomodoroDuration   = signal<number>(
+    Number(localStorage.getItem('preferred_pomodoro_duration')) || DEFAULT_POMODORO_DURATION
+  );
 
   /** Seconds left (Pomodoro) or elapsed (Stopwatch) — drives the display and ring. */
   readonly timerDisplaySeconds = computed(() => {
@@ -422,6 +424,7 @@ export class RoomDetailFacade {
   setTimerMode(mode: TimerMode): void {
     if (this.timerStatus() === 'running') return;
     this.timerMode.set(mode);
+    localStorage.setItem('preferred_timer_mode', mode);
     this.timerError.set(null);
   }
 
@@ -429,6 +432,7 @@ export class RoomDetailFacade {
   setPomodoroDuration(durationSeconds: number): void {
     if (this.timerStatus() === 'running') return;
     this.pomodoroDuration.set(durationSeconds);
+    localStorage.setItem('preferred_pomodoro_duration', String(durationSeconds));
   }
 
   /** Start a new timer session on the backend, then begin local tick. */
@@ -663,19 +667,15 @@ export class RoomDetailFacade {
           consecutiveFailures++;
 
           if (isCritical || consecutiveFailures >= MAX_FAILURES) {
-            this.heartbeatStatus.set('failed');
-            this.heartbeatErrorMessage.set(this.extractHeartbeatError(err));
             if (err.status === 404)
               this.error.set('Room has been closed or no longer exists.');
             else if (err.status === 401 || err.status === 403)
               this.error.set('Session expired or access to this room was revoked.');
-          } else {
-            this.heartbeatStatus.set('retrying');
+            else
+              this.error.set(this.extractHeartbeatError(err));
           }
         } else {
           consecutiveFailures = 0;
-          this.heartbeatStatus.set('active');
-          this.heartbeatErrorMessage.set(null);
           this.onHeartbeatSuccess?.();
         }
       });

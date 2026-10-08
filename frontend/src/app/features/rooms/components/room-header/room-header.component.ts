@@ -29,7 +29,6 @@ export class RoomHeaderComponent {
   readonly LockIcon = Lock;
 
   room = input<RoomData | null>(null);
-  heartbeatStatus = input<'active' | 'retrying' | 'failed'>('active');
   isFavorite = input<boolean>(false);
   isPendingFavorite = input<boolean>(false);
   isOwner = input<boolean>(false);

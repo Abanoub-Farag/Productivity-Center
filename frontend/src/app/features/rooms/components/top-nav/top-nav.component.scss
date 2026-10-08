@@ -1,20 +1,12 @@
-@use "sass:color";
-$bg-sidebar: #090a12;
-$bg-main: #0d0e1a;
-$bg-card: #141624;
-$border-color: #21253b;
-$primary-accent: #8a3ffc;
-$text-primary: #ffffff;
-$text-secondary: #9ca3af;
-$status-active: #ef4444; // Red dot for notification usually
+
 
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 24px 40px;
-  background-color: $bg-main;
-  border-bottom: 1px solid $border-color;
+  background-color: var(--clr-nav-bg);
+  border-bottom: 1px solid var(--clr-nav-border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -22,7 +14,7 @@ $status-active: #ef4444; // Red dot for notification usually
   &__title {
     h1 {
       margin: 0;
-      color: $text-primary;
+      color: var(--clr-text-primary);
       font-size: 1.5rem;
       font-weight: 700;
     }
@@ -44,29 +36,29 @@ $status-active: #ef4444; // Red dot for notification usually
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     width: 18px;
     height: 18px;
   }
 
   .search-input {
     width: 100%;
-    background-color: $bg-card;
-    border: 1px solid $border-color;
+    background-color: var(--clr-input-bg);
+    border: 1px solid var(--clr-input-border);
     border-radius: 8px;
     padding: 10px 16px 10px 40px;
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 0.875rem;
     transition: all 0.2s ease;
     outline: none;
 
     &::placeholder {
-      color: $text-secondary;
+      color: var(--clr-text-muted);
     }
 
     &:focus {
-      border-color: $primary-accent;
-      box-shadow: 0 0 0 2px rgba($primary-accent, 0.2);
+      border-color: var(--clr-action);
+      box-shadow: 0 0 0 2px rgba(61, 82, 160, 0.2);
     }
   }
 }
@@ -75,7 +67,7 @@ $status-active: #ef4444; // Red dot for notification usually
   position: relative;
   background: transparent;
   border: none;
-  color: $text-secondary;
+  color: var(--clr-text-muted);
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
@@ -90,8 +82,8 @@ $status-active: #ef4444; // Red dot for notification usually
   }
 
   &:hover {
-    background-color: rgba(#ffffff, 0.05);
-    color: $text-primary;
+    background-color: var(--clr-nav-btn-hover);
+    color: var(--clr-text-primary);
   }
 
   .notification-dot {
@@ -100,8 +92,8 @@ $status-active: #ef4444; // Red dot for notification usually
     right: 8px;
     width: 8px;
     height: 8px;
-    background-color: $status-active;
-    border: 2px solid $bg-main;
+    background-color: var(--clr-error);
+    border: 2px solid var(--clr-nav-bg);
     border-radius: 50%;
   }
 }
@@ -125,12 +117,41 @@ $status-active: #ef4444; // Red dot for notification usually
   }
 
   &--primary {
-    background-color: $primary-accent;
-    color: $text-primary;
+    background-color: var(--clr-action);
+    color: var(--clr-action-text);
     
     &:hover {
-      background-color: color.scale($primary-accent, $lightness: -10%);
+      background-color: var(--clr-action-hover);
       transform: translateY(-1px);
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .top-nav {
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+    
+    &__title {
+      font-size: 1.25rem;
+    }
+
+    &__actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .search-container {
+    flex: 1;
+    width: auto;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    
+    span { display: none; } /* Hide text on mobile button */
   }
 }

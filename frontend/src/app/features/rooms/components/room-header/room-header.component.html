@@ -10,10 +10,6 @@
         }
         {{ room()?.title || 'Design Critiques Session' }}
       </h1>
-      <span class="live-badge" [class.retrying]="heartbeatStatus() === 'retrying'" [class.failed]="heartbeatStatus() === 'failed'">
-        <span class="live-dot"></span>
-        {{ heartbeatStatus() === 'retrying' ? 'RECONNECTING...' : (heartbeatStatus() === 'failed' ? 'DISCONNECTED' : 'LIVE') }}
-      </span>
     </div>
   </div>
   <div class="header-right">

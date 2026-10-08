@@ -1,12 +1,5 @@
 // ── Design tokens (mirrors rooms-view palette) ──────────────────────────────
-$bg-surface:      #12142a;
-$bg-elevated:     #1a1d35;
-$border-color:    #21253b;
-$primary-accent:  #8a3ffc;
-$primary-hover:   #7328e8;
-$text-primary:    #ffffff;
-$text-secondary:  #9ca3af;
-$danger:          #ef4444;
+
 
 // ── Backdrop ─────────────────────────────────────────────────────────────────
 .modal-backdrop {
@@ -31,12 +24,12 @@ $danger:          #ef4444;
 .modal {
   width: 100%;
   max-width: 520px;
-  background: $bg-elevated;
-  border: 1px solid rgba($border-color, 0.8);
+  background: var(--clr-card-body);
+  border: 1px solid var(--clr-input-border);
   border-radius: 20px;
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba($primary-accent, 0.08),
+    var(--clr-shadow-card),
+    0 0 0 1px rgba(61, 82, 160, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
@@ -54,15 +47,15 @@ $danger:          #ef4444;
     align-items: center;
     justify-content: space-between;
     padding: 24px 28px 20px;
-    border-bottom: 1px solid $border-color;
+    border-bottom: 1px solid var(--clr-input-border);
   }
 
   &__title {
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 1.2rem;
     font-weight: 700;
     margin: 0;
-    background: linear-gradient(135deg, #fff 30%, rgba($primary-accent, 0.8));
+    background: linear-gradient(135deg, var(--clr-text-primary) 30%, var(--clr-action));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -77,13 +70,13 @@ $danger:          #ef4444;
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 
     &:hover {
-      background: rgba($border-color, 0.8);
-      color: $text-primary;
+      background: var(--clr-nav-btn);
+      color: var(--clr-text-primary);
     }
 
     lucide-icon { display: flex; width: 18px; height: 18px; }
@@ -103,7 +96,7 @@ $danger:          #ef4444;
     justify-content: flex-end;
     gap: 12px;
     padding: 20px 28px 24px;
-    border-top: 1px solid $border-color;
+    border-top: 1px solid var(--clr-input-border);
   }
 }
 
@@ -114,7 +107,7 @@ $danger:          #ef4444;
   gap: 8px;
 
   &__label {
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -122,10 +115,10 @@ $danger:          #ef4444;
   }
 
   &__input {
-    background: $bg-surface;
-    border: 1px solid $border-color;
+    background: var(--clr-input-bg);
+    border: 1px solid var(--clr-input-border);
     border-radius: 12px;
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 0.95rem;
     padding: 12px 16px;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -133,11 +126,11 @@ $danger:          #ef4444;
     font-family: inherit;
     resize: none;
 
-    &::placeholder { color: rgba($text-secondary, 0.5); }
+    &::placeholder { color: var(--clr-text-muted); }
 
     &:focus {
-      border-color: $primary-accent;
-      box-shadow: 0 0 0 3px rgba($primary-accent, 0.15);
+      border-color: var(--clr-action);
+      box-shadow: 0 0 0 3px rgba(61, 82, 160, 0.15);
     }
   }
 
@@ -150,8 +143,8 @@ $danger:          #ef4444;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  background: $bg-surface;
-  border: 1px solid $border-color;
+  background: var(--clr-input-bg);
+  border: 1px solid var(--clr-input-border);
   border-radius: 14px;
   cursor: pointer;
   text-align: left;
@@ -159,26 +152,26 @@ $danger:          #ef4444;
   width: 100%;
 
   &:hover {
-    border-color: rgba($primary-accent, 0.5);
-    background: rgba($primary-accent, 0.04);
+    border-color: var(--clr-action);
+    background: rgba(61, 82, 160, 0.04);
   }
 
   &__icon {
     display: flex;
     width: 20px;
     height: 20px;
-    color: $primary-accent;
+    color: var(--clr-action);
     flex-shrink: 0;
   }
 
   &__label {
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 0.95rem;
     font-weight: 600;
   }
 
   &__hint {
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     font-size: 0.82rem;
     margin-left: auto;
   }
@@ -217,15 +210,15 @@ $danger:          #ef4444;
   &__icon { display: flex; width: 16px; height: 16px; }
 
   &--primary {
-    background: $primary-accent;
-    color: #fff;
-    &:not(:disabled):hover { background: $primary-hover; }
+    background: var(--clr-action);
+    color: var(--clr-action-text);
+    &:not(:disabled):hover { background: var(--clr-action-hover); }
   }
 
   &--ghost {
     background: transparent;
-    color: $text-secondary;
-    border: 1px solid $border-color;
-    &:hover { background: rgba($border-color, 0.5); color: $text-primary; }
+    color: var(--clr-text-muted);
+    border: 1px solid var(--clr-input-border);
+    &:hover { background: var(--clr-nav-btn); color: var(--clr-text-primary); }
   }
 }

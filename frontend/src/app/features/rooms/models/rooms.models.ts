@@ -62,7 +62,6 @@ export interface Room {
   title: string;
   description: string;
   tags: string[];
-  actionType: 'join' | 'view';
   visibility?: RoomVisibility;
   isFavorite?: boolean;
   addedAt?: string;

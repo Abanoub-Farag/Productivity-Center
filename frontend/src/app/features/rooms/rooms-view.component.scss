@@ -2,16 +2,12 @@
   display: block;
 }
 
-$bg-main: #0d0e1a;
-$border-color: #21253b;
-$primary-accent: #8a3ffc;
-$text-primary: #ffffff;
-$text-secondary: #9ca3af;
+
 
 .layout-container {
   display: flex;
   min-height: 100vh;
-  background-color: $bg-main;
+  background-color: var(--clr-page-bg);
 }
 
 .layout-sidebar {
@@ -35,7 +31,7 @@ $text-secondary: #9ca3af;
 
 .hero-section {
   h2 {
-    color: $text-primary;
+    color: var(--clr-text-primary);
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
@@ -46,14 +42,14 @@ $text-secondary: #9ca3af;
   .tabs {
     display: flex;
     gap: 8px;
-    border-bottom: 1px solid rgba($border-color, 0.5);
+    border-bottom: 1px solid var(--clr-nav-border);
     padding-bottom: 1px;
   }
 
   .tab-btn {
     background: transparent;
     border: none;
-    color: $text-secondary;
+    color: var(--clr-text-muted);
     padding: 12px 24px;
     font-size: 0.95rem;
     font-weight: 500;
@@ -62,11 +58,11 @@ $text-secondary: #9ca3af;
     transition: color 0.2s ease;
 
     &:hover {
-      color: $text-primary;
+      color: var(--clr-text-primary);
     }
 
     &.active {
-      color: $primary-accent;
+      color: var(--clr-action);
 
       &::after {
         content: '';
@@ -75,7 +71,7 @@ $text-secondary: #9ca3af;
         left: 0;
         right: 0;
         height: 2px;
-        background-color: $primary-accent;
+        background-color: var(--clr-action);
         border-radius: 2px 2px 0 0;
       }
     }
@@ -92,16 +88,16 @@ $text-secondary: #9ca3af;
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: $text-secondary;
+  color: var(--clr-text-muted);
   font-size: 1.1rem;
-  background-color: rgba(#ffffff, 0.02);
+  background-color: var(--clr-nav-btn);
   border-radius: 12px;
-  border: 1px dashed $border-color;
+  border: 1px dashed var(--clr-nav-border);
 
   &.error {
-    color: #F87171;
+    color: var(--clr-error);
     border-color: rgba(239, 68, 68, 0.3);
-    background-color: rgba(239, 68, 68, 0.05);
+    background-color: var(--clr-error-bg);
   }
 }
 
@@ -114,18 +110,18 @@ $text-secondary: #9ca3af;
 
   .page-btn {
     padding: 8px 16px;
-    background: #141624;
-    border: 1px solid #21253B;
+    background: var(--clr-nav-btn);
+    border: 1px solid var(--clr-nav-btn-border);
     border-radius: 8px;
-    color: #FFFFFF;
+    color: var(--clr-text-primary);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-      background: $primary-accent;
-      border-color: $primary-accent;
+      background: var(--clr-action);
+      border-color: var(--clr-action);
     }
 
     &:disabled {
@@ -134,8 +130,27 @@ $text-secondary: #9ca3af;
     }
   }
 
-  .page-info {
-    color: $text-secondary;
+    .page-info {
+    color: var(--clr-text-muted);
     font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  
+  .layout-main {
+    padding-bottom: 64px; /* Space for bottom nav */
+  }
+  
+  .content-area {
+    padding: 20px 16px;
+    gap: 20px;
+  }
+
+  .rooms-grid {
+    grid-template-columns: 1fr; /* 1 column on mobile */
   }
 }

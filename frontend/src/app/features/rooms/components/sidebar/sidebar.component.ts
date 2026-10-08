@@ -10,9 +10,12 @@ import {
   User as UserIcon,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-angular';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ThemeService } from '../../../../core/services/theme.service';
 import { RouterModule, Router } from '@angular/router';
 import { formatUserName, extractInitials, loadSidebarCollapseState, saveSidebarCollapseState } from './sidebar.utils';
 
@@ -37,6 +40,10 @@ export class SidebarComponent {
   readonly ChevronLeftIcon = ChevronLeft;
   readonly ChevronRightIcon = ChevronRight;
   readonly LogOutIcon = LogOut;
+  readonly SunIcon = Sun;
+  readonly MoonIcon = Moon;
+
+  readonly themeService = inject(ThemeService);
 
   readonly isCollapsed = signal<boolean>(loadSidebarCollapseState());
 
