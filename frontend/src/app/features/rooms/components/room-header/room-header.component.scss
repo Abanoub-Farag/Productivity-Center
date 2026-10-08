@@ -6,8 +6,6 @@ $accent-light: var(--room-accent-light);
 $accent-subtle: var(--room-accent-subtle);
 $text-primary: var(--room-text-primary);
 $text-muted: var(--room-text-muted);
-$green-live: var(--room-green-live);
-$green-live-bg: var(--room-green-live-bg);
 
 .session-header {
   display: flex;
@@ -89,28 +87,6 @@ $green-live-bg: var(--room-green-live-bg);
   flex-shrink: 0;
 }
 
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background-color: $green-live-bg;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: $green-live;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.live-badge .live-dot {
-  width: 7px;
-  height: 7px;
-  background-color: $green-live;
-  border-radius: 50%;
-  animation: pulse-dot 1.8s ease-in-out infinite;
-}
 
 .icon-btn {
   display: flex;
@@ -172,11 +148,6 @@ $green-live-bg: var(--room-green-live-bg);
 .delete-room-btn:hover {
   color: var(--clr-error);
   background-color: var(--clr-error-bg);
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
 @media (max-width: 768px) {

@@ -62,8 +62,6 @@ export class RoomDetailFacade {
   readonly roomDeleteError = signal<string | null>(null);
 
   // ── Heartbeat state ────────────────────────────────────────────────────────
-  readonly heartbeatStatus = signal<'active' | 'retrying' | 'failed'>('active');
-  readonly heartbeatErrorMessage = signal<string | null>(null);
 
   /** Wired by the host component to refresh the members list on each heartbeat success. */
   onHeartbeatSuccess: (() => void) | null = null;
@@ -669,19 +667,15 @@ export class RoomDetailFacade {
           consecutiveFailures++;
 
           if (isCritical || consecutiveFailures >= MAX_FAILURES) {
-            this.heartbeatStatus.set('failed');
-            this.heartbeatErrorMessage.set(this.extractHeartbeatError(err));
             if (err.status === 404)
               this.error.set('Room has been closed or no longer exists.');
             else if (err.status === 401 || err.status === 403)
               this.error.set('Session expired or access to this room was revoked.');
-          } else {
-            this.heartbeatStatus.set('retrying');
+            else
+              this.error.set(this.extractHeartbeatError(err));
           }
         } else {
           consecutiveFailures = 0;
-          this.heartbeatStatus.set('active');
-          this.heartbeatErrorMessage.set(null);
           this.onHeartbeatSuccess?.();
         }
       });
