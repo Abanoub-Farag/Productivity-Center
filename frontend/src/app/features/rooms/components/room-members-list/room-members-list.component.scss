@@ -3,16 +3,16 @@
 // ─────────────────────────────────────────────
 // Design tokens
 // ─────────────────────────────────────────────
-$bg-panel      : #0B0E14;
-$bg-card       : rgba(255, 255, 255, 0.04);
-$border-card   : rgba(255, 255, 255, 0.08);
-$accent-violet : #8B5CF6;
-$accent-violet-dim: rgba(139, 92, 246, 0.18);
+$bg-panel      : var(--clr-card-body);
+$bg-card       : var(--clr-input-bg);
+$border-card   : var(--clr-input-border);
+$accent-violet : var(--clr-action);
+$accent-violet-dim: rgba(61, 82, 160, 0.18);
 $green-online  : #22C55E;
 $green-glow    : rgba(34, 197, 94, 0.45);
-$text-primary  : #F1F5F9;
-$text-muted    : #64748B;
-$text-role     : #7E92AB;
+$text-primary  : var(--clr-text-primary);
+$text-muted    : var(--clr-text-muted);
+$text-role     : var(--clr-text-secondary);
 
 // ─────────────────────────────────────────────
 // Host
@@ -43,7 +43,7 @@ $text-role     : #7E92AB;
   gap: 10px;
   padding-bottom: 14px;
   margin-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--clr-nav-border);
 }
 
 .header-icon {
@@ -116,18 +116,18 @@ $text-role     : #7E92AB;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366F1 0%, $accent-violet 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--clr-action-hover) 0%, $accent-violet 100%);
+  color: var(--clr-action-text);
   font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(61, 82, 160, 0.3);
 
   &.dimmed {
-    background: linear-gradient(135deg, #2D3143 0%, #3A3F5C 100%);
+    background: linear-gradient(135deg, var(--clr-nav-border) 0%, var(--clr-input-bg) 100%);
     box-shadow: none;
     filter: grayscale(0.4);
   }
@@ -250,12 +250,12 @@ $text-role     : #7E92AB;
 .error-icon {
   width: 36px;
   height: 36px;
-  color: #F87171;
+  color: var(--clr-error);
 }
 
 .error-message {
   font-size: 12px;
-  color: #FDA4A4;
+  color: var(--clr-error);
   margin: 0;
 }
 
@@ -264,9 +264,9 @@ $text-role     : #7E92AB;
   font-weight: 600;
   padding: 6px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  background: rgba(248, 113, 113, 0.12);
-  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: var(--clr-error-bg);
+  color: var(--clr-error);
   cursor: pointer;
   transition: background 0.2s ease;
 

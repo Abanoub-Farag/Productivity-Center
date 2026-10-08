@@ -70,7 +70,7 @@ $green-live: var(--room-green-live);
 
 .task-input:focus {
   border-color: $accent;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+  box-shadow: 0 0 0 3px rgba(61, 82, 160, 0.18);
 }
 
 .add-task-btn {
@@ -83,7 +83,7 @@ $green-live: var(--room-green-live);
   padding: 0;
   margin: 0;
   background-color: $accent-subtle;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(61, 82, 160, 0.3);
   border-radius: 8px;
   color: $accent-light;
   cursor: pointer;
@@ -131,7 +131,7 @@ $green-live: var(--room-green-live);
 
 .task-card:hover {
   border-color: $border;
-  background-color: #16152B;
+  background-color: var(--clr-nav-btn);
 }
 
 .task-card--done {
@@ -150,10 +150,10 @@ $green-live: var(--room-green-live);
 .task-update-error {
   margin-bottom: 12px;
   padding: 8px 12px;
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: var(--clr-error-bg);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 8px;
-  color: #EF4444;
+  color: var(--clr-error);
   font-size: 0.8125rem;
 }
 
@@ -189,7 +189,7 @@ $green-live: var(--room-green-live);
 
 .task-action-btn:hover {
   color: $accent-light;
-  background-color: rgba(139, 92, 246, 0.1);
+  background-color: rgba(61, 82, 160, 0.1);
 }
 
 .task-action-btn--save:hover {
@@ -198,8 +198,8 @@ $green-live: var(--room-green-live);
 }
 
 .task-action-btn--cancel:hover {
-  color: #EF4444;
-  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--clr-error);
+  background-color: var(--clr-error-bg);
 }
 
 .task-edit-container {
@@ -221,7 +221,7 @@ $green-live: var(--room-green-live);
 }
 
 .task-edit-input:focus {
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 0 0 2px rgba(61, 82, 160, 0.25);
 }
 
 .task-toggle {
@@ -287,8 +287,8 @@ $green-live: var(--room-green-live);
 }
 
 .task-delete:hover {
-  color: #EF4444;
-  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--clr-error);
+  background-color: var(--clr-error-bg);
 }
 
 .task-card:hover .task-delete {
@@ -318,14 +318,14 @@ $green-live: var(--room-green-live);
 .state-container .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(61, 82, 160, 0.2);
   border-top-color: $accent-light;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .state-container.error {
-  color: #EF4444;
+  color: var(--clr-error);
 }
 
 .state-container.error .error-hint {
@@ -338,8 +338,8 @@ $green-live: var(--room-green-live);
   padding: 6px 16px;
   font-size: 0.75rem;
   border-radius: 6px;
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
+  background-color: var(--clr-error-bg);
+  color: var(--clr-error);
   border: 1px solid rgba(239, 68, 68, 0.2);
   cursor: pointer;
 }
