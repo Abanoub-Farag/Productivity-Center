@@ -44,6 +44,14 @@
   </nav>
 
   <div class="sidebar__footer">
+    <a (click)="themeService.toggle()"
+       class="nav-item theme-btn"
+       [title]="isCollapsed() ? 'Toggle Theme' : ''"
+       style="cursor: pointer;">
+      <lucide-icon [img]="themeService.isDarkMode() ? SunIcon : MoonIcon" class="nav-icon"></lucide-icon>
+      <span class="nav-label">{{ themeService.isDarkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+    </a>
+
     <a (click)="logout()"
        class="nav-item logout-btn" 
        [title]="isCollapsed() ? 'Logout' : ''"
