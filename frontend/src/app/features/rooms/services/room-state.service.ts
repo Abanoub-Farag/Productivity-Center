@@ -79,7 +79,7 @@ export class RoomDetailFacade {
   // ── Timer state ────────────────────────────────────────────────────────────
 
   readonly timerMode          = signal<TimerMode>(
-    (localStorage.getItem('preferred_timer_mode') as TimerMode) || 'pomodoro'
+    (typeof window !== 'undefined' ? localStorage.getItem('preferred_timer_mode') as TimerMode : null) || 'pomodoro'
   );
   readonly timerStatus        = signal<TimerLifecycle>('idle');
   readonly timerSessionId     = signal<number | null>(null);
@@ -91,7 +91,7 @@ export class RoomDetailFacade {
   readonly isStopConfirmOpen  = signal<boolean>(false);
   readonly lastSessionDuration = signal<number | null>(null); // seconds
   readonly pomodoroDuration   = signal<number>(
-    Number(localStorage.getItem('preferred_pomodoro_duration')) || DEFAULT_POMODORO_DURATION
+    (typeof window !== 'undefined' ? Number(localStorage.getItem('preferred_pomodoro_duration')) : 0) || DEFAULT_POMODORO_DURATION
   );
 
   /** Seconds left (Pomodoro) or elapsed (Stopwatch) — drives the display and ring. */
@@ -424,7 +424,9 @@ export class RoomDetailFacade {
   setTimerMode(mode: TimerMode): void {
     if (this.timerStatus() === 'running') return;
     this.timerMode.set(mode);
-    localStorage.setItem('preferred_timer_mode', mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('preferred_timer_mode', mode);
+    }
     this.timerError.set(null);
   }
 
@@ -432,7 +434,9 @@ export class RoomDetailFacade {
   setPomodoroDuration(durationSeconds: number): void {
     if (this.timerStatus() === 'running') return;
     this.pomodoroDuration.set(durationSeconds);
-    localStorage.setItem('preferred_pomodoro_duration', String(durationSeconds));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('preferred_pomodoro_duration', String(durationSeconds));
+    }
   }
 
   /** Start a new timer session on the backend, then begin local tick. */
@@ -616,10 +620,13 @@ export class RoomDetailFacade {
   }
 
   private saveSessionId(id: number): void {
-    localStorage.setItem(this.storageKey(), String(id));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.storageKey(), String(id));
+    }
   }
 
   private loadSessionId(): number | null {
+    if (typeof window === 'undefined') return null;
     const raw = localStorage.getItem(this.storageKey());
     if (!raw) return null;
     const n = Number(raw);
@@ -627,7 +634,9 @@ export class RoomDetailFacade {
   }
 
   private clearSessionId(): void {
-    localStorage.removeItem(this.storageKey());
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(this.storageKey());
+    }
   }
 
   // ── Dismiss timer error ────────────────────────────────────────────────────
