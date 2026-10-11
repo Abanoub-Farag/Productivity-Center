@@ -69,6 +69,10 @@ export interface Room {
   ownerId?: number;
 }
 
+/** Tags that classify a room as belonging to a team — drives the "My Teams" filter. */
+export const TEAM_TAGS = ['engineering', 'frontend', 'design'] as const;
+
+
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 // Task types are owned by the tasks feature module; re-exported here so that
 // existing imports within the rooms module continue to resolve without changes.
