@@ -1,9 +1,8 @@
 import {
   Component,
   OnInit,
-  AfterViewInit,
-  ViewChild,
   inject,
+  signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -15,8 +14,11 @@ import { RoomTimerComponent } from '../components/room-timer/room-timer.componen
 import { RoomMembersListComponent } from '../components/room-members-list/room-members-list.component';
 import { RoomHeaderComponent } from '../components/room-header/room-header.component';
 import { RoomTaskPanelComponent } from '../components/room-task-panel/room-task-panel.component';
+import { EditRoomModalComponent } from '../components/edit-room-modal/edit-room-modal.component';
 import { RoomDetailFacade } from '../services/room-state.service';
-import { TaskData } from '../models/rooms.models';
+import { TimerFacade } from '../services/timer.facade';
+import { TaskFacade } from '../services/task.facade';
+import { Room, UpdateRoomDto } from '../models/rooms.models';
 
 @Component({
   selector: 'app-room-detail',
@@ -30,24 +32,26 @@ import { TaskData } from '../models/rooms.models';
     RoomMembersListComponent,
     RoomHeaderComponent,
     RoomTaskPanelComponent,
+    EditRoomModalComponent,
   ],
-  providers: [RoomDetailFacade],
+  providers: [RoomDetailFacade, TimerFacade, TaskFacade],
   templateUrl: './room-detail.component.html',
   styleUrls: ['./room-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RoomDetailComponent implements OnInit, AfterViewInit {
+export class RoomDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  /** Expose facade publicly so template can access signals directly. */
+  /** Expose facades publicly so templates can bind to signals and methods directly. */
   readonly roomState = inject(RoomDetailFacade);
+  readonly timer = inject(TimerFacade);
+  readonly tasks = inject(TaskFacade);
 
-  // ── Only icons used directly in this template (modals) ─────────────────────
   readonly XIcon = X;
 
-  @ViewChild(RoomMembersListComponent)
-  private membersListRef!: RoomMembersListComponent;
+  /** Room currently being edited — opens the shared EditRoomModalComponent when non-null. */
+  readonly editingRoom = signal<Room | null>(null);
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -55,6 +59,8 @@ export class RoomDetailComponent implements OnInit, AfterViewInit {
       const id = parseInt(idParam, 10);
       if (!isNaN(id) && id > 0) {
         this.roomState.initialize(id);
+        this.timer.initialize(id);
+        this.tasks.fetchTasks();
       } else {
         this.router.navigate(['/404'], { replaceUrl: true });
       }
@@ -63,42 +69,40 @@ export class RoomDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    // Wire members list refresh — called by the facade on every successful heartbeat.
-    this.roomState.onHeartbeatSuccess = () => this.membersListRef?.fetchMembers();
+  // ── Edit Room (delegates through shared modal + facade) ────────────────────
+
+  openEditRoomModal(): void {
+    const r = this.roomState.room();
+    if (!r) return;
+    this.editingRoom.set({
+      id: r.id.toString(),
+      title: r.title,
+      description: r.description,
+      visibility: r.visibility,
+      tags: [],
+    });
   }
 
-  // ── Thin template event handlers (delegate to facade) ─────────────────────
-
-  toggleFavorite(): void { this.roomState.toggleFavorite(); }
-
-  openEditRoomModal(): void { this.roomState.openEditRoomModal(); }
-  closeEditRoomModal(): void { this.roomState.closeEditRoomModal(); }
-  onEditRoomTitleInput(event: Event): void {
-    this.roomState.setEditRoomTitle((event.target as HTMLInputElement).value);
+  onSaveRoom(event: { roomId: string; dto: UpdateRoomDto }): void {
+    this.roomState.updateRoom(parseInt(event.roomId, 10), event.dto);
+    this.editingRoom.set(null);
   }
-  onEditRoomDescriptionInput(event: Event): void {
-    this.roomState.setEditRoomDescription((event.target as HTMLTextAreaElement).value);
+
+  onCloseModal(): void {
+    this.editingRoom.set(null);
   }
-  submitUpdateRoom(): void { this.roomState.submitUpdateRoom(); }
 
-  openDeleteRoomModal(): void { this.roomState.openDeleteRoomModal(); }
-  closeDeleteRoomModal(): void { this.roomState.closeDeleteRoomModal(); }
-  confirmDeleteRoom(): void { this.roomState.confirmDeleteRoom(); }
+  // ── Task event handlers ────────────────────────────────────────────────────
 
-  onToggleTask(task: TaskData): void { this.roomState.toggleTask(task); }
-  onStartEditTask(task: TaskData): void { this.roomState.startEditTask(task); }
-  onSaveTaskTitle(task: TaskData): void { this.roomState.saveTaskTitle(task); }
-  onCancelEditTask(): void { this.roomState.cancelEditTask(); }
-  onDeleteTask(taskId: number): void { this.roomState.deleteTask(taskId); }
-  onAddTask(): void { this.roomState.addTask(); }
   onNewTaskInput(event: Event): void {
-    this.roomState.setNewTaskText((event.target as HTMLInputElement).value);
+    this.tasks.setNewTaskText((event.target as HTMLInputElement).value);
   }
+
   onNewTaskKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') this.roomState.addTask();
+    if (event.key === 'Enter') this.tasks.addTask();
   }
+
   onEditTaskInput(event: Event): void {
-    this.roomState.setEditingTaskTitle((event.target as HTMLInputElement).value);
+    this.tasks.setEditingTaskTitle((event.target as HTMLInputElement).value);
   }
 }
