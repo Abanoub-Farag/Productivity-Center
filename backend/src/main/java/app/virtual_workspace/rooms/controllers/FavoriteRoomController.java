@@ -73,4 +73,19 @@ public class FavoriteRoomController {
 
                 return ResponseEntity.ok().body(response);
         }
+
+        @GetMapping("/{roomId}/exists")
+        public ResponseEntity<ApiResponse<Boolean>> isRoomFavorite(
+                        @PathVariable Long roomId,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                boolean exists = favoriteRoomService.isRoomFavorite(userPrincipal.getId(), roomId);
+
+                ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Checked favorite status successfully")
+                                .data(exists)
+                                .build();
+
+                return ResponseEntity.ok().body(response);
+        }
 }
