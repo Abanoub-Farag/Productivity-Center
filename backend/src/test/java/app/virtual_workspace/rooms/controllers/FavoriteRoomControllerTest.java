@@ -191,4 +191,41 @@ public class FavoriteRoomControllerTest {
                     .hasMessage("This room is not in your favorite list");
         }
     }
+
+    @Nested
+    @DisplayName("isRoomFavorite() tests")
+    class IsRoomFavoriteTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with data true when room is in favorites")
+        void isRoomFavorite_shouldReturnTrue_whenFavoriteExists() {
+            when(favoriteRoomService.isRoomFavorite(1L, 10L)).thenReturn(true);
+
+            ResponseEntity<ApiResponse<Boolean>> response = favoriteRoomController.isRoomFavorite(10L, userPrincipal);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
+            assertThat(response.getBody().getMessage()).isEqualTo("Checked favorite status successfully");
+            assertThat(response.getBody().getData()).isTrue();
+
+            verify(favoriteRoomService, times(1)).isRoomFavorite(1L, 10L);
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with data false when room is not in favorites")
+        void isRoomFavorite_shouldReturnFalse_whenFavoriteDoesNotExist() {
+            when(favoriteRoomService.isRoomFavorite(1L, 10L)).thenReturn(false);
+
+            ResponseEntity<ApiResponse<Boolean>> response = favoriteRoomController.isRoomFavorite(10L, userPrincipal);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
+            assertThat(response.getBody().getMessage()).isEqualTo("Checked favorite status successfully");
+            assertThat(response.getBody().getData()).isFalse();
+
+            verify(favoriteRoomService, times(1)).isRoomFavorite(1L, 10L);
+        }
+    }
 }

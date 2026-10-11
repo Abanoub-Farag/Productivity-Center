@@ -52,4 +52,12 @@ export class FavoriteRoomService {
   removeFavorite(roomId: number): Observable<ApiResponse<null>> {
     return this.http.delete<ApiResponse<null>>(`${this.baseUrl}/${roomId}`);
   }
+
+  /**
+   * GET /api/v1/rooms/favorites/{roomId}/exists
+   * Checks whether a room is in the current user's favorites.
+   */
+  isFavorite(roomId: number): Observable<ApiResponse<boolean>> {
+    return this.http.get<ApiResponse<boolean>>(`${this.baseUrl}/${roomId}/exists`);
+  }
 }

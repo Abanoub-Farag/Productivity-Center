@@ -1,11 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { TopNavComponent } from '../components/top-nav/top-nav.component';
-import { RoomsDataService } from '../services/rooms-data.service';
 import { RoomsFacade } from '../services/rooms.facade';
 import { LucideAngularModule, Plus, Globe, Shield } from 'lucide-angular';
 import { CreateRoomDto } from '../models/rooms.models';
@@ -27,7 +25,6 @@ import { CreateRoomDto } from '../models/rooms.models';
 })
 export class CreateRoomComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly roomsData = inject(RoomsDataService);
   private readonly facade = inject(RoomsFacade);
 
   readonly PlusIcon = Plus;
@@ -40,8 +37,9 @@ export class CreateRoomComponent {
     visibility: ['PUBLIC', [Validators.required]],
   });
 
-  readonly isSubmitting = signal<boolean>(false);
-  readonly error = signal<string | null>(null);
+  /** Delegated to facade — avoids local duplicate signals for isLoading/error. */
+  readonly isSubmitting = computed(() => this.facade.isLoading());
+  readonly error = computed(() => this.facade.error());
 
   onSubmit(): void {
     if (this.createRoomForm.invalid) {
@@ -49,24 +47,7 @@ export class CreateRoomComponent {
       return;
     }
 
-    this.isSubmitting.set(true);
-    this.error.set(null);
-
     const payload = this.createRoomForm.value as CreateRoomDto;
-
-    this.roomsData.createRoom(payload).subscribe({
-      next: (response) => {
-        this.isSubmitting.set(false);
-        this.facade.handleRoomCreated(response.data?.id);
-      },
-      error: (err: HttpErrorResponse) => {
-        const msg =
-          (err.error?.message as string | undefined) ??
-          'Failed to create the room. Please try again.';
-        console.error('Error creating room', err);
-        this.error.set(msg);
-        this.isSubmitting.set(false);
-      },
-    });
+    this.facade.createRoom(payload);
   }
 }

@@ -59,4 +59,8 @@ public class FavoriteRoomService {
         favoriteRoomRepository.delete(favoriteRoom);
     }
 
+    @Transactional(readOnly = true)
+    public boolean isRoomFavorite(Long userId, Long roomId) {
+        return favoriteRoomRepository.existsByUserIdAndRoomId(userId, roomId);
+    }
 }

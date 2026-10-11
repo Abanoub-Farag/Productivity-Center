@@ -17,8 +17,8 @@ public class RoomMembersStatusScheduler {
     @Scheduled(fixedRate = 30000)
     public void disconnectNonActiveUsers(){
 
-        Instant localDateTime = Instant.now().minusSeconds(30);
-        roomMembersRepository.disconnectNonActiveUsers(localDateTime);
+        Instant cutoff = Instant.now().minusSeconds(30);
+        roomMembersRepository.disconnectNonActiveUsers(cutoff);
 
     }
 

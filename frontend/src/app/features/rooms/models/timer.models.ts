@@ -1,3 +1,11 @@
+// ── Timer constants ───────────────────────────────────────────────────────────
+
+/** Default duration of the Pomodoro session in seconds (25 min). */
+export const DEFAULT_POMODORO_DURATION = 25 * 60;
+
+/** Full-ring cap for the stopwatch SVG ring (60 min). */
+export const STOPWATCH_RING_CAP = 60 * 60;
+
 // ── Timer enums ───────────────────────────────────────────────────────────────
 
 /** Mirrors the backend `TimerStatus` enum. */

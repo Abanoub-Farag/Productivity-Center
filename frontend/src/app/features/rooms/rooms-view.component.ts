@@ -4,7 +4,7 @@ import { TopNavComponent } from './components/top-nav/top-nav.component';
 import { RoomCardComponent } from './components/room-card/room-card.component';
 import { EditRoomModalComponent } from './components/edit-room-modal/edit-room-modal.component';
 import { RoomsFacade } from './services/rooms.facade';
-import { Room, UpdateRoomDto } from './models/rooms.models';
+import { Room, UpdateRoomDto, TEAM_TAGS } from './models/rooms.models';
 
 type Tab = 'All Rooms' | 'My Teams' | 'Favorites';
 
@@ -20,7 +20,6 @@ export class RoomsViewComponent implements OnInit {
   readonly facade = inject(RoomsFacade);
 
   readonly tabs: Tab[] = ['All Rooms', 'My Teams', 'Favorites'];
-  readonly activeTab = signal<Tab>('All Rooms');
   readonly searchQuery = signal<string>('');
 
   /** Room currently being edited — opens the modal when non-null. */
@@ -29,7 +28,7 @@ export class RoomsViewComponent implements OnInit {
   /** Client-side filter over facade.rooms() — no extra HTTP calls needed. */
   readonly filteredRooms = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    const tab = this.activeTab();
+    const tab = this.facade.activeTab();
     return this.facade.rooms().filter((room) => this.matchesSearchAndTab(room, query, tab));
   });
 
@@ -39,7 +38,6 @@ export class RoomsViewComponent implements OnInit {
   }
 
   setActiveTab(tab: Tab): void {
-    this.activeTab.set(tab);
     this.facade.setActiveTab(tab);
     if (tab === 'Favorites') {
       this.facade.loadFavorites(0);
@@ -55,14 +53,14 @@ export class RoomsViewComponent implements OnInit {
   @HostListener('window:scroll')
   onScroll(): void {
     if (this.facade.isLoading() || this.facade.isFetchingMore() || this.facade.isLastPage()) return;
-    
+
     // Check if scrolled near bottom (within 200px)
     const pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
     const max = document.documentElement.scrollHeight;
-    
+
     if (pos >= max - 200) {
       const nextPage = this.facade.currentPage() + 1;
-      if (this.activeTab() === 'Favorites') {
+      if (this.facade.activeTab() === 'Favorites') {
         this.facade.loadFavorites(nextPage);
       } else {
         this.facade.loadRooms(nextPage);
@@ -100,8 +98,7 @@ export class RoomsViewComponent implements OnInit {
 
     if (!matchesQuery) return false;
     if (tab === 'My Teams') {
-      const teamTags = ['engineering', 'frontend', 'design'];
-      return room.tags.some((t) => teamTags.includes(t.toLowerCase()));
+      return room.tags.some((t) => (TEAM_TAGS as readonly string[]).includes(t.toLowerCase()));
     }
     return true;
   }

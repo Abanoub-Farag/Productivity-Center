@@ -7,11 +7,11 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Clock, Play, Square, AlertTriangle, Check, Timer } from 'lucide-angular';
-import { TimerMode, TimerLifecycle } from '../../models/timer.models';
+import { TimerMode, TimerLifecycle, STOPWATCH_RING_CAP } from '../../models/timer.models';
 
-const STOPWATCH_RING_CAP = 60 * 60;
 const RING_RADIUS = 90;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 565.49
+
 
 @Component({
   selector: 'app-room-timer',

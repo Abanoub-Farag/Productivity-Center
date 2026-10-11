@@ -86,10 +86,8 @@ export class RoomsFacade {
               isFavorite: favSet.has(r.id.toString()),
               ownerId: r.ownerId,
             }));
-          this.rooms.update(list => [...list, ...mapped]); // Wait, loadAll is page 0 so we just set it.
           this.rooms.set(mapped);
           this.isLoading.set(false);
-          this.isFetchingMore.set(false);
         },
         error: () => {
           this.error.set('Failed to load rooms.');
@@ -129,10 +127,12 @@ export class RoomsFacade {
             }));
           this.rooms.set(mapped);
           this.isLoading.set(false);
+          if (page > 0) this.isFetchingMore.set(false);
         },
         error: () => {
           this.error.set('Failed to load rooms.');
           this.isLoading.set(false);
+          this.isFetchingMore.set(false);
         },
       });
   }

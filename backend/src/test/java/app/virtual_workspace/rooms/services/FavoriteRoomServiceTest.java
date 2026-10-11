@@ -276,4 +276,31 @@ public class FavoriteRoomServiceTest {
                     .hasMessage("Delete failed");
         }
     }
+
+    @Nested
+    @DisplayName("isRoomFavorite() tests")
+    class IsRoomFavoriteTests {
+
+        @Test
+        @DisplayName("Should return true when room is in favorites")
+        void isRoomFavorite_shouldReturnTrue_whenFavoriteExists() {
+            when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(true);
+
+            boolean result = favoriteRoomService.isRoomFavorite(1L, 10L);
+
+            assertThat(result).isTrue();
+            verify(favoriteRoomRepository, times(1)).existsByUserIdAndRoomId(1L, 10L);
+        }
+
+        @Test
+        @DisplayName("Should return false when room is not in favorites")
+        void isRoomFavorite_shouldReturnFalse_whenFavoriteDoesNotExist() {
+            when(favoriteRoomRepository.existsByUserIdAndRoomId(1L, 10L)).thenReturn(false);
+
+            boolean result = favoriteRoomService.isRoomFavorite(1L, 10L);
+
+            assertThat(result).isFalse();
+            verify(favoriteRoomRepository, times(1)).existsByUserIdAndRoomId(1L, 10L);
+        }
+    }
 }

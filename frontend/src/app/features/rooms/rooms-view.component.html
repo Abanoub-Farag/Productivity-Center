@@ -14,7 +14,7 @@
           @for (tab of tabs; track tab) {
             <button
               class="tab-btn"
-              [class.active]="activeTab() === tab"
+              [class.active]="facade.activeTab() === tab"
               (click)="setActiveTab(tab)">
               {{ tab }}
             </button>
@@ -32,7 +32,7 @@
         </div>
       } @else if (filteredRooms().length === 0) {
         <div class="empty-state">
-          @if (activeTab() === 'Favorites') {
+          @if (facade.activeTab() === 'Favorites') {
             <p>No favorite rooms added yet. Click the heart icon on any room to add it to your favorites!</p>
           } @else {
             <p>No rooms match your search criteria.</p>
