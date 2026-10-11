@@ -38,8 +38,8 @@ public interface RoomMembersRepository extends JpaRepository<RoomMembers, Long> 
 
     @Transactional
     @Modifying
-    @Query("UPDATE RoomMembers r SET r.status = 'OFFLINE', r.timerActive = false WHERE r.lastActiveAt < :localDateTime AND r.status = 'ONLINE'")
-    void disconnectNonActiveUsers(@Param("localDateTime") Instant localDateTime);
+    @Query("UPDATE RoomMembers r SET r.status = 'OFFLINE', r.timerActive = false WHERE r.lastActiveAt < :cutoff AND r.status = 'ONLINE'")
+    void disconnectNonActiveUsers(@Param("cutoff") Instant cutoff);
 
     List<RoomMembers> findRoomMembersByRoomId(Long roomId);
 
