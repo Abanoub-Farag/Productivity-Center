@@ -1,5 +1,8 @@
 package app.virtual_workspace.accounts.services;
 
+import java.time.Duration;
+
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +22,33 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
     private final ProfileMapper profileMapper;
+    private final RedisTemplate redisTemplate;
 
-    @Transactional(readOnly = true)
     public UserProfileDataDto getProfile(Long userId) {
-        Profile profile = profileRepository.findProfileAndUserByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Profille for user id: " + userId + " is not found"));
-        return profileMapper.toUserProfileDataDto(profile.getUser(), profile);
+        String cacheKey = "app:prod:user:" + userId;
+
+        UserProfileDataDto userProfileDataDto = null;
+        try{
+            userProfileDataDto = (UserProfileDataDto) redisTemplate.opsForValue().get(cacheKey);
+        }catch(Exception e){
+            // Do nothing for now
+        }
+        if (userProfileDataDto != null){
+            return userProfileDataDto;
+        }
+        
+        Profile profile = profileRepository.findProfileAndUserByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Profille for user id: " + userId + " is not found"));
+        userProfileDataDto = profileMapper.toUserProfileDataDto(profile.getUser(), profile);
+
+        try{
+            redisTemplate.opsForValue().set(cacheKey, userProfileDataDto, Duration.ofMinutes(10));
+        }catch(Exception e){
+            // Do nothing for now
+        }
+
+        return userProfileDataDto;
     }
 
-    @Transactional
     public UserProfileDataDto updateProfile(Long userId, UpdateUserProfileDto updateDto) {
 
         Profile profile = profileRepository.findByUserId(userId)
@@ -49,6 +70,15 @@ public class ProfileService {
         UpdateUserDataDto userUpdateDataDto = userService.updateData(userId, updateDto.getFirstName(),
                 updateDto.getLastName());
 
-        return profileMapper.toUserProfileDataDto(userUpdateDataDto, profile);
+        UserProfileDataDto userProfileDataDto = profileMapper.toUserProfileDataDto(userUpdateDataDto, profile);
+
+        String cacheKey = "app:prod:user:" + userId;
+        try {
+            redisTemplate.delete(cacheKey);
+        } catch (Exception e) {
+            // Do nothing for now
+        }
+
+        return userProfileDataDto;
     }
 }
