@@ -1,0 +1,239 @@
+<div class="layout-container">
+  <app-sidebar class="layout-sidebar"></app-sidebar>
+
+  <div class="layout-main">
+    <app-top-nav></app-top-nav>
+
+    <main class="content-area">
+
+      <!-- ── Page Header ──────────────────────────────────────────────────── -->
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-title">Study Analytics</h1>
+          <p class="page-subtitle">Track your focus sessions and task progress</p>
+        </div>
+        <div class="range-tabs">
+          <button
+            *ngFor="let r of ranges"
+            class="range-tab"
+            [class.range-tab--active]="f.range() === r"
+            (click)="setRange(r)">
+            {{ r }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Loading ─────────────────────────────────────────────────────── -->
+      <div class="state-center" *ngIf="f.isLoading()">
+        <div class="spinner"></div>
+        <p>Loading analytics…</p>
+      </div>
+
+      <!-- ── Error ───────────────────────────────────────────────────────── -->
+      <div class="state-center state-center--error" *ngIf="!f.isLoading() && f.error()">
+        <span class="state-icon">⚠</span>
+        <p>{{ f.error() }}</p>
+        <button class="btn-primary" (click)="f.load()">Retry</button>
+      </div>
+
+      <!-- ── Dashboard content ───────────────────────────────────────────── -->
+      <ng-container *ngIf="!f.isLoading() && !f.error() && f.dashboard() as dash">
+
+        <!-- ── Stat Cards ────────────────────────────────────────────────── -->
+        <div class="stat-cards" *ngIf="f.timerSummary() as ts">
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">FOCUS TIME</span>
+            </div>
+            <div class="stat-card__value">{{ f.formatSeconds(ts.totalFocusSeconds) }}</div>
+            <div class="stat-card__meta">{{ ts.totalSessions }} total sessions</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">AVG SESSION</span>
+            </div>
+            <div class="stat-card__value">{{ f.formatSeconds(ts.avgSessionSeconds) }}</div>
+            <div class="stat-card__meta">per focus session</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">LONGEST SESSION</span>
+            </div>
+            <div class="stat-card__value">{{ f.formatSeconds(ts.longestSessionSeconds) }}</div>
+            <div class="stat-card__meta">personal best</div>
+          </div>
+
+          <div class="stat-card" *ngIf="f.taskSummary() as tk">
+            <div class="stat-card__header">
+              <span class="stat-card__label">TASK COMPLETION</span>
+            </div>
+            <div class="stat-card__value">{{ tk.completionRate | number:'1.0-0' }}%</div>
+            <div class="stat-card__meta">{{ tk.completedTasks }} of {{ tk.totalTasks }} tasks</div>
+          </div>
+        </div>
+
+        <!-- ── Main grid ─────────────────────────────────────────────────── -->
+        <div class="main-grid">
+
+          <!-- LEFT: Where your time goes ─────────────────────────────────── -->
+          <section class="card card--time-dist" *ngIf="f.perRoom().length > 0">
+            <h2 class="card__title">Where your time goes</h2>
+            <p class="card__subtitle">Share of focus hours · {{ f.range() === '7D' ? 'last 7 days' : f.range() === '30D' ? 'last 30 days' : 'last 90 days' }}</p>
+
+            <!-- Room list -->
+            <div class="room-list">
+              <div class="room-row" *ngFor="let room of f.perRoom(); let i = index; trackBy: trackByRoomId">
+                <span class="room-dot" [style.background]="f.roomColor(i)"></span>
+                <span class="room-name">{{ room.roomName }}</span>
+                <span class="room-hours">{{ f.formatHours(room.focusSeconds) }}</span>
+                <span class="room-sessions">{{ room.sessionCount }} sessions</span>
+              </div>
+            </div>
+
+            <!-- Per-room progress bars -->
+            <div class="room-bars">
+              <div class="room-bar-row" *ngFor="let room of f.perRoom(); let i = index; trackBy: trackByRoomId">
+                <span class="room-bar-name">{{ room.roomName }}</span>
+                <div class="room-bar-track">
+                  <div
+                    class="room-bar-fill"
+                    [style.width.%]="f.roomPercent(room.focusSeconds)"
+                    [style.background]="f.roomColor(i)">
+                  </div>
+                </div>
+                <span class="room-bar-pct">{{ f.roomPercent(room.focusSeconds) }}%</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- CENTER: Task Metrics + Pending Tasks ────────────────────────── -->
+          <div class="center-col">
+
+            <!-- Task summary cards -->
+            <section class="card card--task-summary" *ngIf="f.taskSummary() as tk">
+              <h2 class="card__title">Tasks overview</h2>
+              <div class="task-metrics">
+                <div class="task-metric">
+                  <span class="task-metric__num">{{ tk.totalTasks }}</span>
+                  <span class="task-metric__label">Total</span>
+                </div>
+                <div class="task-metric task-metric--green">
+                  <span class="task-metric__num">{{ tk.completedTasks }}</span>
+                  <span class="task-metric__label">Completed</span>
+                </div>
+                <div class="task-metric task-metric--orange">
+                  <span class="task-metric__num">{{ tk.pendingTasks }}</span>
+                  <span class="task-metric__label">Pending</span>
+                </div>
+                <div class="task-metric task-metric--purple">
+                  <span class="task-metric__num">{{ tk.completionRate | number:'1.0-0' }}%</span>
+                  <span class="task-metric__label">Rate</span>
+                </div>
+              </div>
+              <!-- Completion progress bar -->
+              <div class="completion-bar-wrap">
+                <div class="completion-bar-label">
+                  <span>Completion rate</span>
+                  <span>{{ tk.completionRate | number:'1.1-1' }}%</span>
+                </div>
+                <div class="completion-bar-track">
+                  <div class="completion-bar-fill" [style.width.%]="tk.completionRate"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Oldest pending tasks ────────────────────────────────────── -->
+            <section class="card card--pending" *ngIf="f.oldestTasks().length > 0">
+              <h2 class="card__title">Oldest pending tasks</h2>
+              <p class="card__subtitle">Tasks waiting the longest for your attention</p>
+              <ul class="pending-list">
+                <li class="pending-item" *ngFor="let task of f.oldestTasks(); trackBy: trackByTaskId">
+                  <span class="pending-item__dot"></span>
+                  <div class="pending-item__body">
+                    <span class="pending-item__title">{{ task.title }}</span>
+                    <span class="pending-item__age">{{ f.ageLabel(task.createdAt) }}</span>
+                  </div>
+                </li>
+              </ul>
+            </section>
+
+          </div>
+
+          <!-- RIGHT: Focus summary ────────────────────────────────────────── -->
+          <section class="card card--focus-summary" *ngIf="f.timerSummary() as ts">
+            <h2 class="card__title">Focus summary</h2>
+            <p class="card__subtitle">{{ f.range() }} period overview</p>
+
+            <div class="focus-stat-list">
+              <div class="focus-stat">
+                <span class="focus-stat__label">Total focus time</span>
+                <span class="focus-stat__value">{{ f.formatSeconds(ts.totalFocusSeconds) }}</span>
+              </div>
+              <div class="focus-stat">
+                <span class="focus-stat__label">Total sessions</span>
+                <span class="focus-stat__value">{{ ts.totalSessions }}</span>
+              </div>
+              <div class="focus-stat">
+                <span class="focus-stat__label">Avg session length</span>
+                <span class="focus-stat__value">{{ f.formatSeconds(ts.avgSessionSeconds) }}</span>
+              </div>
+              <div class="focus-stat">
+                <span class="focus-stat__label">Longest session</span>
+                <span class="focus-stat__value accent">{{ f.formatSeconds(ts.longestSessionSeconds) }}</span>
+              </div>
+            </div>
+
+            <!-- Per-room sessions breakdown -->
+            <div class="room-session-list" *ngIf="f.perRoom().length > 0">
+              <h3 class="room-session-title">Sessions by room</h3>
+              <div class="room-session-row"
+                *ngFor="let room of f.perRoom(); let i = index; trackBy: trackByRoomId">
+                <span class="room-session-dot" [style.background]="f.roomColor(i)"></span>
+                <span class="room-session-name">{{ room.roomName }}</span>
+                <span class="room-session-count">{{ room.sessionCount }}</span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ── Daily Tasks Breakdown ─────────────────────────────────────── -->
+        <section class="card card--daily-tasks" *ngIf="f.dailyTasks().length > 0">
+          <h2 class="card__title">Daily task activity</h2>
+          <p class="card__subtitle">Tasks created vs completed per day</p>
+          <div class="daily-table-wrap">
+            <table class="daily-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Created</th>
+                  <th>Completed</th>
+                  <th>Net</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let day of f.dailyTasks()">
+                  <td>{{ day.date | date:'MMM d' }}</td>
+                  <td><span class="badge badge--blue">{{ day.created }}</span></td>
+                  <td><span class="badge badge--green">{{ day.completed }}</span></td>
+                  <td>
+                    <span
+                      class="badge"
+                      [class.badge--green]="day.completed >= day.created"
+                      [class.badge--red]="day.completed < day.created">
+                      {{ day.completed - day.created >= 0 ? '+' : '' }}{{ day.completed - day.created }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </ng-container>
+
+    </main>
+  </div>
+</div>

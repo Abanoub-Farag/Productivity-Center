@@ -12,7 +12,8 @@ import {
   ChevronRight,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  BarChart2
 } from 'lucide-angular';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
@@ -53,6 +54,7 @@ export class SidebarComponent {
   readonly navItems: NavItem[] = [
     { label: 'Profile', icon: UserIcon, route: '/profile' },
     { label: 'Dashboard', icon: LayoutDashboard },
+    { label: 'Analytics', icon: BarChart2, route: '/analytics' },
     { label: 'Rooms', icon: MonitorPlay, route: '/rooms' },
     { label: 'Leaderboard', icon: Trophy },
     { label: 'Communities', icon: Users },

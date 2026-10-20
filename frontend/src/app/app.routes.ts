@@ -58,6 +58,15 @@ export const routes: Routes = [
     title: 'Profile – Pcenter',
   },
   {
+    path: 'analytics',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/analytics/analytics-dashboard/analytics-dashboard.component').then(
+        (m) => m.AnalyticsDashboardComponent,
+      ),
+    title: 'Analytics – Pcenter',
+  },
+  {
     path: '404',
     loadComponent: () =>
       import('./features/not-found/not-found.component').then(
