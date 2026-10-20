@@ -5,84 +5,86 @@
     <app-top-nav></app-top-nav>
 
     <main class="content-area">
-      <div class="form-header">
-        <a routerLink="/rooms" class="back-link">... Back to Rooms</a>
-        <h2>Create a New Room</h2>
-        <p class="subtitle">Configure the details and permissions for your new virtual space.</p>
-      </div>
+      <div class="form-container">
+        <div class="form-header">
+          <a routerLink="/rooms" class="back-link">... Back to Rooms</a>
+          <h2>Create a New Room</h2>
+          <p class="subtitle">Configure the details and permissions for your new virtual space.</p>
+        </div>
 
-      <div class="form-card-wrapper">
-        <form [formGroup]="createRoomForm" (ngSubmit)="onSubmit()" class="form-card">
-          <div class="form-card-header">
-            <h3>Room Details</h3>
-          </div>
+        <div class="form-card-wrapper">
+          <form [formGroup]="createRoomForm" (ngSubmit)="onSubmit()" class="form-card">
+            <div class="form-card-header">
+              <h3>Room Details</h3>
+            </div>
 
-          <div class="form-card-body">
-            <div class="form-group">
-              <label for="title">Room Name *</label>
-              <input
-                id="title"
-                type="text"
-                formControlName="title"
-                placeholder="e.g. Design Critiques"
-                [class.invalid]="createRoomForm.get('title')?.invalid && (createRoomForm.get('title')?.dirty || createRoomForm.get('title')?.touched)"
-              />
-              @if (createRoomForm.get('title')?.invalid && (createRoomForm.get('title')?.dirty || createRoomForm.get('title')?.touched)) {
-                <span class="error-msg">Room Name is required (min 3 characters).</span>
+            <div class="form-card-body">
+              <div class="form-group">
+                <label for="title">Room Name *</label>
+                <input
+                  id="title"
+                  type="text"
+                  formControlName="title"
+                  placeholder="e.g. Design Critiques"
+                  [class.invalid]="createRoomForm.get('title')?.invalid && (createRoomForm.get('title')?.dirty || createRoomForm.get('title')?.touched)"
+                />
+                @if (createRoomForm.get('title')?.invalid && (createRoomForm.get('title')?.dirty || createRoomForm.get('title')?.touched)) {
+                  <span class="error-msg">Room Name is required (min 3 characters).</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea
+                  id="description"
+                  formControlName="description"
+                  rows="4"
+                  placeholder="What is the main purpose of this room?">
+                </textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Room Visibility</label>
+                <div class="visibility-options">
+                  <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PUBLIC'">
+                    <input type="radio" formControlName="visibility" value="PUBLIC" />
+                    <div class="radio-content">
+                      <lucide-icon [img]="GlobeIcon" class="radio-icon"></lucide-icon>
+                      <div class="radio-text">
+                        <span class="radio-title">Public</span>
+                        <span class="radio-desc">Visible in global room discovery and search.</span>
+                      </div>
+                    </div>
+                  </label>
+                  <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PRIVATE'">
+                    <input type="radio" formControlName="visibility" value="PRIVATE" />
+                    <div class="radio-content">
+                      <lucide-icon [img]="ShieldIcon" class="radio-icon"></lucide-icon>
+                      <div class="radio-text">
+                        <span class="radio-title">Private</span>
+                        <span class="radio-desc">Hidden from room lists and search results; direct access only.</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              @if (error()) {
+                <div class="form-group">
+                  <div class="server-error">{{ error() }}</div>
+                </div>
               }
             </div>
 
-            <div class="form-group">
-              <label for="description">Description</label>
-              <textarea
-                id="description"
-                formControlName="description"
-                rows="4"
-                placeholder="What is the main purpose of this room?">
-              </textarea>
+            <div class="form-card-footer">
+              <button type="button" class="btn btn--cancel" routerLink="/rooms">Cancel</button>
+              <button type="submit" class="btn btn--primary" [disabled]="isSubmitting()">
+                <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
+                {{ isSubmitting() ? 'Creating...' : 'Create Room' }}
+              </button>
             </div>
-
-            <div class="form-group">
-              <label>Room Visibility</label>
-              <div class="visibility-options">
-                <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PUBLIC'">
-                  <input type="radio" formControlName="visibility" value="PUBLIC" />
-                  <div class="radio-content">
-                    <lucide-icon [img]="GlobeIcon" class="radio-icon"></lucide-icon>
-                    <div class="radio-text">
-                      <span class="radio-title">Public</span>
-                      <span class="radio-desc">Visible in global room discovery and search.</span>
-                    </div>
-                  </div>
-                </label>
-                <label class="radio-card" [class.selected]="createRoomForm.get('visibility')?.value === 'PRIVATE'">
-                  <input type="radio" formControlName="visibility" value="PRIVATE" />
-                  <div class="radio-content">
-                    <lucide-icon [img]="ShieldIcon" class="radio-icon"></lucide-icon>
-                    <div class="radio-text">
-                      <span class="radio-title">Private</span>
-                      <span class="radio-desc">Hidden from room lists and search results; direct access only.</span>
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            @if (error()) {
-              <div class="form-group">
-                <div class="server-error">{{ error() }}</div>
-              </div>
-            }
-          </div>
-
-          <div class="form-card-footer">
-            <button type="button" class="btn btn--cancel" routerLink="/rooms">Cancel</button>
-            <button type="submit" class="btn btn--primary" [disabled]="isSubmitting()">
-              <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
-              {{ isSubmitting() ? 'Creating...' : 'Create Room' }}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </main>
   </div>
