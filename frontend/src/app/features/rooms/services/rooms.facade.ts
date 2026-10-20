@@ -22,7 +22,7 @@ export class RoomsFacade {
   // ── State ──────────────────────────────────────────────────────────────────
 
   readonly rooms = signal<Room[]>([]);
-  readonly isLoading = signal<boolean>(true);
+  readonly isLoading = signal<boolean>(false);
   readonly isFetchingMore = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
@@ -238,9 +238,9 @@ export class RoomsFacade {
           this.isLoading.set(false);
           this.handleRoomCreated(response.data?.id);
         },
-        error: (err: unknown) => {
+        error: (err: HttpErrorResponse) => {
           console.error('Error creating room', err);
-          this.error.set('Failed to create the room. Please try again.');
+          this.error.set(this.extractErrorMessage(err, 'Failed to create the room. Please try again.'));
           this.isLoading.set(false);
         },
       });
