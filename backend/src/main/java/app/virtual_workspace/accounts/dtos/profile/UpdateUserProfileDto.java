@@ -2,6 +2,8 @@ package app.virtual_workspace.accounts.dtos.profile;
 
 import java.time.LocalDate;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import app.virtual_workspace.accounts.models.enums.Gender;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -31,4 +33,6 @@ public class UpdateUserProfileDto {
 
     @Size(min = 3, max = 20, message = "Last name must be between 3 and 20 characters")
     private String lastName;
+
+    private MultipartFile profilePicture;
 }

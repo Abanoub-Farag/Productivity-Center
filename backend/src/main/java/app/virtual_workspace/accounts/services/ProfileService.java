@@ -4,7 +4,6 @@ import java.time.Duration;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import app.virtual_workspace.accounts.dtos.data.UpdateUserDataDto;
 import app.virtual_workspace.accounts.dtos.profile.UpdateUserProfileDto;
@@ -13,6 +12,7 @@ import app.virtual_workspace.accounts.mappers.ProfileMapper;
 import app.virtual_workspace.accounts.models.Profile;
 import app.virtual_workspace.accounts.repositories.ProfileRepository;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
+import app.virtual_workspace.shared.services.FileStorageService;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ public class ProfileService {
     private final UserService userService;
     private final ProfileMapper profileMapper;
     private final RedisTemplate redisTemplate;
+    private final FileStorageService fileStorageService;
 
     public UserProfileDataDto getProfile(Long userId) {
         String cacheKey = "app:prod:user:" + userId;
@@ -37,7 +38,7 @@ public class ProfileService {
             return userProfileDataDto;
         }
         
-        Profile profile = profileRepository.findProfileAndUserByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Profille for user id: " + userId + " is not found"));
+        Profile profile = profileRepository.findProfileAndUserByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Profile for user id: " + userId + " is not found"));
         userProfileDataDto = profileMapper.toUserProfileDataDto(profile.getUser(), profile);
 
         try{
@@ -53,7 +54,7 @@ public class ProfileService {
 
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Profille for user id: " + userId + " is not found"));
+                        () -> new ResourceNotFoundException("Profile for user id: " + userId + " is not found"));
 
         if (updateDto.getBio() != null) {
             profile.setBio(updateDto.getBio());
@@ -63,6 +64,13 @@ public class ProfileService {
         }
         if (updateDto.getDateOfBirth() != null) {
             profile.setDateOfBirth(updateDto.getDateOfBirth());
+        }
+        if (updateDto.getProfilePicture() != null && !updateDto.getProfilePicture().isEmpty()){
+            if (profile.getImageUrl() != null) {
+                fileStorageService.deleteFile(profile.getImageUrl());
+            }
+            String profileUrl = fileStorageService.storeFile(updateDto.getProfilePicture());
+            profile.setImageUrl(profileUrl);
         }
 
         profileRepository.save(profile);
