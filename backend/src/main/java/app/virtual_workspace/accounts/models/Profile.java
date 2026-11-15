@@ -42,6 +42,9 @@ public class Profile {
         @Column(name = "date_of_birth")
         private LocalDate dateOfBirth;
 
+        @Column(name = "profile_picture")
+        private String imageUrl;
+
         @OneToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "user_id", nullable = false)
         private User user;

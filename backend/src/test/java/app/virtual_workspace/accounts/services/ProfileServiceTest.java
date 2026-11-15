@@ -3,6 +3,7 @@ package app.virtual_workspace.accounts.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,6 +30,8 @@ import app.virtual_workspace.accounts.models.User;
 import app.virtual_workspace.accounts.models.enums.Gender;
 import app.virtual_workspace.accounts.repositories.ProfileRepository;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
+import app.virtual_workspace.shared.services.FileStorageService;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
 public class ProfileServiceTest {
@@ -41,6 +44,12 @@ public class ProfileServiceTest {
 
     @Mock
     private ProfileMapper profileMapper;
+
+    @Mock
+    private FileStorageService fileStorageService;
+
+    @Mock
+    private RedisTemplate redisTemplate;
 
     @InjectMocks
     private ProfileService profileService;
@@ -62,6 +71,7 @@ public class ProfileServiceTest {
                 "Initial bio",
                 Gender.MALE,
                 LocalDate.of(1995, 5, 15),
+                null,
                 sampleUser
         );
     }
@@ -99,7 +109,7 @@ public class ProfileServiceTest {
 
             assertThatThrownBy(() -> profileService.getProfile(999L))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: 999 is not found");
+                    .hasMessage("Profile for user id: 999 is not found");
 
             verify(profileRepository, times(1)).findProfileAndUserByUserId(999L);
             verify(profileMapper, never()).toUserProfileDataDto(any(User.class), any(Profile.class));
@@ -116,23 +126,23 @@ public class ProfileServiceTest {
 
             assertThatThrownBy(() -> profileService.getProfile(0L))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: 0 is not found");
+                    .hasMessage("Profile for user id: 0 is not found");
 
             assertThatThrownBy(() -> profileService.getProfile(-1L))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: -1 is not found");
+                    .hasMessage("Profile for user id: -1 is not found");
 
             assertThatThrownBy(() -> profileService.getProfile(Long.MAX_VALUE))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: " + Long.MAX_VALUE + " is not found");
+                    .hasMessage("Profile for user id: " + Long.MAX_VALUE + " is not found");
 
             assertThatThrownBy(() -> profileService.getProfile(Long.MIN_VALUE))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: " + Long.MIN_VALUE + " is not found");
+                    .hasMessage("Profile for user id: " + Long.MIN_VALUE + " is not found");
 
             assertThatThrownBy(() -> profileService.getProfile(null))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: null is not found");
+                    .hasMessage("Profile for user id: null is not found");
         }
 
         @Test
@@ -302,7 +312,7 @@ public class ProfileServiceTest {
 
             assertThatThrownBy(() -> profileService.updateProfile(999L, updateDto))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: 999 is not found");
+                    .hasMessage("Profile for user id: 999 is not found");
 
             verify(profileRepository, times(1)).findByUserId(999L);
             verify(profileRepository, never()).save(any());
@@ -316,7 +326,7 @@ public class ProfileServiceTest {
 
             assertThatThrownBy(() -> profileService.updateProfile(null, updateDto))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Profille for user id: null is not found");
+                    .hasMessage("Profile for user id: null is not found");
 
             verify(profileRepository, times(1)).findByUserId(null);
             verify(profileRepository, never()).save(any());
@@ -361,6 +371,53 @@ public class ProfileServiceTest {
             assertThatThrownBy(() -> profileService.updateProfile(1L, updateDto))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Mapping error");
+        }
+
+        @Test
+        @DisplayName("Should store profile picture and delete old image when new picture provided")
+        void updateProfile_shouldStoreProfilePictureAndReplaceOld_whenProvided() {
+            sampleProfile.setImageUrl("old_avatar.png");
+            org.springframework.mock.web.MockMultipartFile mockFile =
+                    new org.springframework.mock.web.MockMultipartFile(
+                            "profilePicture", "new_avatar.png", "image/png", "bytes".getBytes()
+                    );
+            UpdateUserProfileDto dtoWithImage = UpdateUserProfileDto.builder()
+                    .profilePicture(mockFile)
+                    .build();
+
+            when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(sampleProfile));
+            when(fileStorageService.storeFile(mockFile)).thenReturn("stored_new_avatar.png");
+            when(profileRepository.save(sampleProfile)).thenReturn(sampleProfile);
+            when(userService.updateData(eq(1L), any(), any())).thenReturn(updatedUserDto);
+            when(profileMapper.toUserProfileDataDto(updatedUserDto, sampleProfile)).thenReturn(expectedResultDto);
+
+            profileService.updateProfile(1L, dtoWithImage);
+
+            verify(fileStorageService, times(1)).deleteFile("old_avatar.png");
+            verify(fileStorageService, times(1)).storeFile(mockFile);
+            assertThat(sampleProfile.getImageUrl()).isEqualTo("stored_new_avatar.png");
+        }
+
+        @Test
+        @DisplayName("Should not store profile picture when file is empty")
+        void updateProfile_shouldNotStore_whenFileIsEmpty() {
+            org.springframework.mock.web.MockMultipartFile emptyFile =
+                    new org.springframework.mock.web.MockMultipartFile(
+                            "profilePicture", "empty.png", "image/png", new byte[0]
+                    );
+            UpdateUserProfileDto dtoWithEmpty = UpdateUserProfileDto.builder()
+                    .profilePicture(emptyFile)
+                    .build();
+
+            when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(sampleProfile));
+            when(profileRepository.save(sampleProfile)).thenReturn(sampleProfile);
+            when(userService.updateData(eq(1L), any(), any())).thenReturn(updatedUserDto);
+            when(profileMapper.toUserProfileDataDto(updatedUserDto, sampleProfile)).thenReturn(expectedResultDto);
+
+            profileService.updateProfile(1L, dtoWithEmpty);
+
+            verify(fileStorageService, never()).storeFile(any());
+            verify(fileStorageService, never()).deleteFile(any());
         }
     }
 }

@@ -22,4 +22,5 @@ public class UserProfileDataDto {
     private String lastName;
     private Instant createdAt;
     private Instant updatedAt;
+    private String profilePictureUrl;
 }

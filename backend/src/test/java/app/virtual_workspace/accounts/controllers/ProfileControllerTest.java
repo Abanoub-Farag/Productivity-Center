@@ -30,12 +30,16 @@ import app.virtual_workspace.accounts.models.enums.Role;
 import app.virtual_workspace.accounts.services.ProfileService;
 import app.virtual_workspace.exceptions.custom.ResourceNotFoundException;
 import app.virtual_workspace.shared.dtos.ApiResponse;
+import app.virtual_workspace.shared.services.FileStorageService;
 
 @ExtendWith(MockitoExtension.class)
 public class ProfileControllerTest {
 
     @Mock
     private ProfileService profileService;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private ProfileController profileController;
@@ -53,7 +57,8 @@ public class ProfileControllerTest {
                 "John",
                 "Doe",
                 Instant.now(),
-                Instant.now()
+                Instant.now(),
+                null
         );
 
         samplePrincipal = UserPrincipal.builder()
@@ -165,7 +170,8 @@ public class ProfileControllerTest {
                     "Jane",
                     "Smith",
                     Instant.now(),
-                    Instant.now()
+                    Instant.now(),
+                    null
             );
 
             when(profileService.updateProfile(1L, updateDto)).thenReturn(updatedProfile);
@@ -237,6 +243,85 @@ public class ProfileControllerTest {
             assertThatThrownBy(() -> profileController.updateProfile(updateDto, samplePrincipal))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Database error");
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with updated UserProfileDataDto when updating via multipart")
+        void updateProfileMultipart_shouldReturnOk() {
+            UpdateUserProfileDto updateDto = UpdateUserProfileDto.builder().bio("Multipart Bio").build();
+            when(profileService.updateProfile(1L, updateDto)).thenReturn(sampleProfileData);
+
+            ResponseEntity<ApiResponse<UserProfileDataDto>> response =
+                    profileController.updateProfileMultipart(updateDto, samplePrincipal);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody().getData()).isEqualTo(sampleProfileData);
+            verify(profileService, times(1)).updateProfile(1L, updateDto);
+        }
+
+        @Test
+        @DisplayName("Should upload profile picture via dedicated endpoint successfully")
+        void uploadProfilePicture_shouldReturnOk() {
+            org.springframework.mock.web.MockMultipartFile file =
+                    new org.springframework.mock.web.MockMultipartFile(
+                            "file", "pic.png", "image/png", "content".getBytes()
+                    );
+            when(profileService.updateProfile(eq(1L), any(UpdateUserProfileDto.class))).thenReturn(sampleProfileData);
+
+            ResponseEntity<ApiResponse<UserProfileDataDto>> response =
+                    profileController.uploadProfilePicture(file, null, samplePrincipal);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody().getMessage()).isEqualTo("Profile picture uploaded successfully");
+            verify(profileService, times(1)).updateProfile(eq(1L), any(UpdateUserProfileDto.class));
+        }
+
+        @Test
+        @DisplayName("Should throw IllegalArgumentException when uploadProfilePicture receives empty file")
+        void uploadProfilePicture_shouldThrowException_whenFileEmpty() {
+            org.springframework.mock.web.MockMultipartFile file =
+                    new org.springframework.mock.web.MockMultipartFile(
+                            "file", "pic.png", "image/png", new byte[0]
+                    );
+
+            assertThatThrownBy(() -> profileController.uploadProfilePicture(file, null, samplePrincipal))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("File must not be empty");
+        }
+    }
+
+    @Nested
+    @DisplayName("serveProfileImage() tests")
+    class ServeProfileImageTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with Resource and appropriate content type")
+        void serveProfileImage_shouldReturnResource() {
+            org.springframework.core.io.Resource mockResource = org.mockito.Mockito.mock(org.springframework.core.io.Resource.class);
+            when(mockResource.getFilename()).thenReturn("avatar.png");
+            when(fileStorageService.loadFileAsResource("avatar.png")).thenReturn(mockResource);
+
+            ResponseEntity<org.springframework.core.io.Resource> response =
+                    profileController.serveProfileImage("avatar.png");
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isEqualTo(mockResource);
+            assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.IMAGE_PNG);
+            verify(fileStorageService, times(1)).loadFileAsResource("avatar.png");
+        }
+
+        @Test
+        @DisplayName("Should detect webp content type correctly")
+        void serveProfileImage_shouldDetectWebp() {
+            org.springframework.core.io.Resource mockResource = org.mockito.Mockito.mock(org.springframework.core.io.Resource.class);
+            when(mockResource.getFilename()).thenReturn("avatar.webp");
+            when(fileStorageService.loadFileAsResource("avatar.webp")).thenReturn(mockResource);
+
+            ResponseEntity<org.springframework.core.io.Resource> response =
+                    profileController.serveProfileImage("avatar.webp");
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getHeaders().getContentType().toString()).isEqualTo("image/webp");
         }
     }
 }
