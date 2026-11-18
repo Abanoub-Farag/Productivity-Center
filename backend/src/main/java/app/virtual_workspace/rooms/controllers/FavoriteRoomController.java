@@ -18,8 +18,15 @@ import app.virtual_workspace.accounts.dtos.UserPrincipal;
 import app.virtual_workspace.rooms.dtos.favoriteroom.FavoriteRoomResponseDto;
 import app.virtual_workspace.rooms.services.FavoriteRoomService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Favorite Rooms",
+    description = "Operations for managing users favorite rooms"
+)
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/rooms/favorites")
