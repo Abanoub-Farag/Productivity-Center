@@ -20,8 +20,15 @@ import app.virtual_workspace.accounts.dtos.UserPrincipal;
 import app.virtual_workspace.shared.dtos.ApiResponse;
 import app.virtual_workspace.timer.dtos.TimerSessionResponseDto;
 import app.virtual_workspace.timer.services.TimerSessionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Timer Sessions",
+    description = "Operations for managing users timer sessions"
+)
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 public class TimerSessionController {

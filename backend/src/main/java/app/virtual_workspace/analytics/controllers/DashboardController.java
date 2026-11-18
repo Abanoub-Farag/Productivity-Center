@@ -16,8 +16,15 @@ import app.virtual_workspace.accounts.dtos.UserPrincipal;
 import app.virtual_workspace.analytics.dtos.DashboardResponseDto;
 import app.virtual_workspace.analytics.services.DashboardService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Dashboards",
+    description = "Operations for managing users dashboards"
+)
+@SecurityRequirement (name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 public class DashboardController {

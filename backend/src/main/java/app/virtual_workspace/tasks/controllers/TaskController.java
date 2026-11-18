@@ -22,9 +22,16 @@ import app.virtual_workspace.tasks.dtos.CreateTaskDto;
 import app.virtual_workspace.tasks.dtos.TaskResponseDto;
 import app.virtual_workspace.tasks.dtos.UpdateTaskDto;
 import app.virtual_workspace.tasks.services.TaskService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Tasks",
+    description = "Operations for managing user tasks"
+)
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/tasks")

@@ -17,8 +17,15 @@ import app.virtual_workspace.rooms.dtos.RoomMembers.HeartbeatRequestDto;
 import app.virtual_workspace.rooms.dtos.RoomMembers.RoomMemberDto;
 import app.virtual_workspace.rooms.services.RoomMembersService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Room Members",
+    description = "Operations for managing Room Members"
+)
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/rooms")

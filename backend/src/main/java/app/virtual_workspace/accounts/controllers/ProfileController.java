@@ -23,9 +23,15 @@ import app.virtual_workspace.accounts.dtos.profile.UserProfileDataDto;
 import app.virtual_workspace.accounts.services.ProfileService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
 import app.virtual_workspace.shared.services.FileStorageService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Profiles",
+    description = "Operations for managing users profile"
+)
 @RestController
 @RequestMapping("/api/v1/profile")
 @RequiredArgsConstructor
@@ -34,6 +40,7 @@ public class ProfileController {
     private final ProfileService profileService;
     private final FileStorageService fileStorageService;
 
+    @SecurityRequirement (name = "bearerAuth")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserProfileDataDto>> getProfile(@PathVariable Long userId) {
         UserProfileDataDto profile = profileService.getProfile(userId);
@@ -47,6 +54,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<UserProfileDataDto>> updateProfile(
             @Valid @RequestBody UpdateUserProfileDto updateDto,
@@ -62,6 +70,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<UserProfileDataDto>> updateProfileMultipart(
             @Valid @ModelAttribute UpdateUserProfileDto updateDto,

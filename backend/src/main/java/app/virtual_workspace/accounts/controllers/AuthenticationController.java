@@ -20,9 +20,15 @@ import app.virtual_workspace.accounts.services.RefreshTokenService;
 import app.virtual_workspace.accounts.services.UserAuthService;
 import app.virtual_workspace.accounts.services.UserService;
 import app.virtual_workspace.shared.dtos.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag (
+    name = "Auth",
+    description = "Operations for authentication users"
+)
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -69,6 +75,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequestDto request) {
         refreshTokenService.revokeToken(request.refreshToken());
@@ -81,6 +88,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/user/{userId}/data")
     public ResponseEntity<ApiResponse<UserDataDto>> userData(@PathVariable Long userId) {
         UserDataDto userDataDto = userService.userData(userId);
